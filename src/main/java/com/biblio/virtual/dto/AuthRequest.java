@@ -5,7 +5,6 @@ public class AuthRequest {
 	private String username;
 	private String password;
 
-	// Constructores, getters y setters
 	public AuthRequest() {
 	}
 
@@ -14,6 +13,7 @@ public class AuthRequest {
 		this.password = password;
 	}
 
+	// Getters y setters necesarios para serialización/deserialización
 	public String getUsername() {
 		return username;
 	}

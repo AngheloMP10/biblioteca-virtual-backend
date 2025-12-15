@@ -33,7 +33,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
 		final String authorizationHeader = request.getHeader("Authorization");
 
-		// [LOG 1] Ver si llega el header
+		// Log para debug: verificar si llega el header
 		if (authorizationHeader == null) {
 			System.out.println(">>> JWT FILTER: No hay header Authorization");
 		}
@@ -41,50 +41,42 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 		String username = null;
 		String jwt = null;
 
+		// Extraer token Bearer
 		if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
 			jwt = authorizationHeader.substring(7);
 			try {
-				username = jwtUtil.extractUsername(jwt);
-				// [LOG 2] Usuario extraído
+				username = jwtUtil.extractUsername(jwt); // Extrae username del JWT
 				System.out.println(">>> JWT FILTER: Usuario extraído del token: " + username);
 			} catch (Exception e) {
 				System.out.println(">>> JWT FILTER ERROR: Token inválido/malformado: " + e.getMessage());
 			}
 		}
 
+		// Si hay usuario y no está autenticado aún
 		if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
 			// Cargar usuario desde BD
 			UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 			System.out.println(">>> JWT FILTER: Usuario encontrado en BD: " + userDetails.getUsername());
 
-			// Validar Token
+			// Validar token
 			boolean isValid = jwtUtil.validateToken(jwt, userDetails.getUsername());
 
 			if (isValid) {
-				// [LOG 3] El token es válido, vamos a ver el rol
+				// Extraer y limpiar rol
 				String role = jwtUtil.extractRole(jwt);
-
-				// 1. Limpieza paranoica: Eliminar espacios y saltos de línea
-				if (role != null) {
+				if (role != null)
 					role = role.trim();
-				}
-				System.out.println(">>> JWT FILTER: Rol extraído (limpio): '" + role + "'");
-
-				// 2. Lógica del prefijo
-				if (role != null && !role.startsWith("ROLE_")) {
+				if (role != null && !role.startsWith("ROLE_"))
 					role = "ROLE_" + role;
-				}
-
-				// 3. Volvemos a limpiar por si acaso
 				if (role != null)
 					role = role.trim();
 
 				System.out.println(">>> JWT FILTER: Rol final asignado: '" + role + "'");
 
-				// Crear el token de autenticación con los roles asignados
-				UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails,
-						null, List.of(new SimpleGrantedAuthority(role)));
+				// Crear token de autenticación con rol
+				UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+						userDetails, null, List.of(new SimpleGrantedAuthority(role)));
 
 				authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
@@ -92,11 +84,11 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 				SecurityContextHolder.getContext().setAuthentication(authToken);
 				System.out.println(">>> JWT FILTER: ¡Autenticación establecida en el Contexto!");
 			} else {
-				// [LOG 4] Si entra aquí, es expiración o usuario incorrecto
 				System.out.println(">>> JWT FILTER ERROR: validateToken retornó FALSE.");
 			}
 		}
 
+		// Continuar con el filtro
 		chain.doFilter(request, response);
 	}
 }

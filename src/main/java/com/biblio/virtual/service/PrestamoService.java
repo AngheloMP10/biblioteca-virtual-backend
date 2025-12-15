@@ -30,16 +30,17 @@ public class PrestamoService implements IPrestamoService {
 	@Override
 	@Transactional
 	public Prestamo solicitarPrestamo(Long libroId, String username) {
-
+		// Buscar usuario y libro
 		Usuario usuario = usuarioRepo.findByUsername(username)
 				.orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-
 		Libro libro = libroRepo.findById(libroId).orElseThrow(() -> new RuntimeException("Libro no encontrado"));
 
+		// Validar disponibilidad del libro
 		if (!libro.isDisponible()) {
 			throw new RuntimeException("El libro no está disponible");
 		}
 
+		// Crear solicitud de préstamo pendiente
 		Prestamo prestamo = new Prestamo();
 		prestamo.setUsuario(usuario);
 		prestamo.setLibro(libro);
@@ -52,18 +53,19 @@ public class PrestamoService implements IPrestamoService {
 	@Override
 	@Transactional
 	public void aprobarPrestamo(Long id) {
-		Prestamo prestamo = prestamoRepo.findById(id).orElseThrow(() -> new RuntimeException("Préstamo no encontrado"));
+		Prestamo prestamo = prestamoRepo.findById(id)
+				.orElseThrow(() -> new RuntimeException("Préstamo no encontrado"));
 
 		// Validar disponibilidad del libro
 		if (!prestamo.getLibro().isDisponible()) {
 			throw new RuntimeException("El libro ya no está disponible");
 		}
 
-		// Cambiar estado
+		// Cambiar estado y fecha de devolución
 		prestamo.setEstado("APROBADO");
 		prestamo.setFechaDevolucion(LocalDate.now().plusDays(7));
 
-		// Marcar libro como NO disponible
+		// Marcar libro como no disponible
 		Libro libro = prestamo.getLibro();
 		libro.setDisponible(false);
 		libroRepo.save(libro);
@@ -74,19 +76,22 @@ public class PrestamoService implements IPrestamoService {
 	@Override
 	@Transactional
 	public void rechazarPrestamo(Long id) {
-		Prestamo prestamo = prestamoRepo.findById(id).orElseThrow(() -> new RuntimeException("Préstamo no encontrado"));
-
+		// Cambiar estado a RECHAZADO
+		Prestamo prestamo = prestamoRepo.findById(id)
+				.orElseThrow(() -> new RuntimeException("Préstamo no encontrado"));
 		prestamo.setEstado("RECHAZADO");
 		prestamoRepo.save(prestamo);
 	}
 
 	@Override
 	public List<Prestamo> findAll() {
+		// Listar todos los préstamos
 		return prestamoRepo.findAll();
 	}
 
 	@Override
 	public List<Prestamo> findByUsername(String username) {
+		// Listar préstamos de un usuario específico
 		return prestamoRepo.findByUsuarioUsername(username);
 	}
 }

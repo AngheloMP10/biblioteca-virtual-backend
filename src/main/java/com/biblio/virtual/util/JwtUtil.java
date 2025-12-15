@@ -20,18 +20,24 @@ public class JwtUtil {
 	private Long expiration; // en milisegundos
 
 	private SecretKey getSigningKey() {
+		// Clave secreta para firmar/verificar el token
 		return Keys.hmacShaKeyFor(secret.getBytes());
 	}
 
-	// Generar token con username y rol formateado correctamente
+	// Generar token con username y rol (formato ROLE_)
 	public String generateToken(String username, String role) {
 		if (role != null && !role.startsWith("ROLE_")) {
-			role = "ROLE_" + role; // garantiza formato correcto
+			role = "ROLE_" + role;
 		}
 
-		return Jwts.builder().setIssuer("biblioteca-virtual").setSubject(username).claim("role", role)
-				.setIssuedAt(new Date()).setExpiration(new Date(System.currentTimeMillis() + expiration))
-				.signWith(getSigningKey(), SignatureAlgorithm.HS256).compact();
+		return Jwts.builder()
+				.setIssuer("biblioteca-virtual")
+				.setSubject(username)
+				.claim("role", role)
+				.setIssuedAt(new Date())
+				.setExpiration(new Date(System.currentTimeMillis() + expiration))
+				.signWith(getSigningKey(), SignatureAlgorithm.HS256)
+				.compact();
 	}
 
 	// Extraer username del token
@@ -39,7 +45,7 @@ public class JwtUtil {
 		return extractAllClaims(token).getSubject();
 	}
 
-	// Extraer rol del token
+	// Extraer rol del token y asegurar formato ROLE_
 	public String extractRole(String token) {
 		String role = extractAllClaims(token).get("role", String.class);
 		if (role != null && !role.startsWith("ROLE_")) {
@@ -48,7 +54,7 @@ public class JwtUtil {
 		return role;
 	}
 
-	// Extraer fecha de expiración
+	// Obtener fecha de expiración
 	public Date extractExpiration(String token) {
 		return extractAllClaims(token).getExpiration();
 	}
@@ -64,6 +70,11 @@ public class JwtUtil {
 	}
 
 	private Claims extractAllClaims(String token) {
-		return Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(token).getBody();
+		// Parsear token y extraer claims
+		return Jwts.parserBuilder()
+				.setSigningKey(getSigningKey())
+				.build()
+				.parseClaimsJws(token)
+				.getBody();
 	}
 }

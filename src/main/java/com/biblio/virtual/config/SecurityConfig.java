@@ -35,45 +35,39 @@ public class SecurityConfig {
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		http.cors(Customizer.withDefaults()) // Habilita CORS
-				.csrf(csrf -> csrf.disable()) // Deshabilita CSRF
+		http
+				.cors(Customizer.withDefaults()) // CORS habilitado para frontend externo
+				.csrf(csrf -> csrf.disable()) // API stateless con JWT
 				.authorizeHttpRequests(auth -> auth
-						// Permite las peticiones OPTIONS
 						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
-						// Rutas públicas: Login y Register
 						.requestMatchers("/auth/login", "/auth/register").permitAll()
-
-						// Ruta /auth/me requiere autenticación
 						.requestMatchers("/auth/me").authenticated()
-
-						// Swagger
 						.requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-
-						// El resto de las rutas requieren autenticación
 						.anyRequest().authenticated())
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class); // Filtro JWT
+				.addFilterBefore(
+						jwtRequestFilter,
+						UsernamePasswordAuthenticationFilter.class); // Autenticación JWT previa al filtro estándar
 
 		return http.build();
 	}
 
-	// LA REGLA DE CORS
+	/*
+	 * Configuración CORS explícita para controlar orígenes y
+	 * evitar exposición global innecesaria.
+	 */
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration configuration = new CorsConfiguration();
 
-		configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200", // Entorno local
-				"https://bucolic-horse-0d3efe.netlify.app" // Frontend en Netlify
-		));
+		configuration.setAllowedOrigins(Arrays.asList(
+				"http://localhost:4200",
+				"https://bucolic-horse-0d3efe.netlify.app"));
 
-		// Métodos permitidos
-		configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+		configuration.setAllowedMethods(
+				Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 
-		// Headers permitidos
 		configuration.setAllowedHeaders(Arrays.asList("*"));
-
-		// Permitir credenciales (cookies, auth headers)
 		configuration.setAllowCredentials(true);
 
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -81,14 +75,22 @@ public class SecurityConfig {
 		return source;
 	}
 
+	/*
+	 * BCrypt se usa por ser el estándar recomendado
+	 * para almacenamiento seguro de contraseñas.
+	 */
 	@Bean
 	public PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
 	}
 
+	/*
+	 * Se delega la creación del AuthenticationManager
+	 * a la configuración interna de Spring Security.
+	 */
 	@Bean
-	public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
-			throws Exception {
+	public AuthenticationManager authenticationManager(
+			AuthenticationConfiguration authenticationConfiguration) throws Exception {
 		return authenticationConfiguration.getAuthenticationManager();
 	}
 }

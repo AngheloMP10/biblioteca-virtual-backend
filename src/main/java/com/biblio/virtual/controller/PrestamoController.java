@@ -21,11 +21,12 @@ public class PrestamoController {
 		this.prestamoService = prestamoService;
 	}
 
-	// Solicitar préstamo (USER / ADMIN)
+	// Solicitud de préstamo accesible a USER y ADMIN
 	@PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_USER')")
 	@PostMapping("/solicitar/{libroId}")
 	public ResponseEntity<?> solicitarPrestamo(@PathVariable Long libroId) {
 
+		// Obtenemos usuario autenticado desde el contexto de seguridad
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String username = auth.getName();
 
@@ -33,14 +34,14 @@ public class PrestamoController {
 		return ResponseEntity.ok("Solicitud de préstamo enviada con éxito");
 	}
 
-	// Listar TODOS los préstamos (ADMIN)
+	// Listado completo de préstamos, solo para ADMIN
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	@GetMapping("/todos")
 	public ResponseEntity<List<Prestamo>> listarTodos() {
 		return ResponseEntity.ok(prestamoService.findAll());
 	}
 
-	// Mis préstamos (USER)
+	// Listado de préstamos del usuario actual
 	@PreAuthorize("hasAuthority('ROLE_USER')")
 	@GetMapping("/mios")
 	public ResponseEntity<List<Prestamo>> misPrestamos() {
@@ -51,7 +52,7 @@ public class PrestamoController {
 		return ResponseEntity.ok(prestamoService.findByUsername(username));
 	}
 
-	// APROBAR PRÉSTAMO (Solo Admin)
+	// Aprobación de préstamo, operación crítica restringida a ADMIN
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	@PostMapping("/aprobar/{id}")
 	public ResponseEntity<?> aprobarPrestamo(@PathVariable Long id) {
@@ -59,7 +60,7 @@ public class PrestamoController {
 		return ResponseEntity.ok("Préstamo aprobado y libro entregado.");
 	}
 
-	// RECHAZAR PRÉSTAMO (Solo Admin)
+	// Rechazo de préstamo, solo ADMIN puede realizar
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	@PostMapping("/rechazar/{id}")
 	public ResponseEntity<?> rechazarPrestamo(@PathVariable Long id) {

@@ -3,7 +3,8 @@ package com.biblio.virtual.model;
 import jakarta.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDate;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties; // <--- Importante
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "prestamos")
@@ -21,21 +22,29 @@ public class Prestamo implements Serializable {
 	@Column(name = "fecha_devolucion")
 	private LocalDate fechaDevolucion;
 
-	// PENDIENTE | APROBADO | RECHAZADO
+	/*
+	 * El estado se modela como String para mantener flexibilidad
+	 * y evitar acoplar la persistencia a un enum cerrado.
+	 */
 	@Column(nullable = false)
 	private String estado;
 
-	// RELACIÓN CON USUARIO
-	// Usamos EAGER para asegurar que los datos del usuario viajen con el préstamo
-	// @JsonIgnoreProperties evita que entremos en bucle con la lista del usuario
+	/*
+	 * Relación con Usuario cargada de forma EAGER para que los
+	 * datos necesarios del solicitante estén disponibles
+	 * sin consultas adicionales.
+	 * Se ocultan campos sensibles y relaciones inversas.
+	 */
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "usuario_id", nullable = false)
 	@JsonIgnoreProperties({ "prestamos", "password", "role" })
-	// Nota: Ocultamos 'prestamos' para evitar errores, y 'password' por seguridad.
 	private Usuario usuario;
 
-	// RELACIÓN CON LIBRO
-	// Usamos EAGER para que veas el título y portada en la tabla de préstamos
+	/*
+	 * Relación con Libro cargada de forma inmediata para permitir
+	 * mostrar información básica del libro en listados de préstamos,
+	 * evitando accesos diferidos fuera de sesión.
+	 */
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "libro_id", nullable = false)
 	@JsonIgnoreProperties("prestamos")

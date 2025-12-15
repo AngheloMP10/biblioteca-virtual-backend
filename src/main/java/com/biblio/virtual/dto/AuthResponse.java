@@ -2,10 +2,10 @@ package com.biblio.virtual.dto;
 
 public class AuthResponse {
 
-	private String token;
-	private String tipoToken = "Bearer"; // <-- Angular
-	private String username;
-	private String role;
+	private String token; // JWT generado para el usuario
+	private String tipoToken = "Bearer"; // Tipo de token esperado por el frontend
+	private String username; // Nombre de usuario autenticado
+	private String role; // Rol del usuario ("ROLE_USER" o "ROLE_ADMIN")
 
 	public AuthResponse(String token, String username, String role) {
 		this.token = token;
@@ -13,7 +13,7 @@ public class AuthResponse {
 		this.role = role;
 	}
 
-	// Getters y Setters
+	// Getters y setters necesarios para serialización/deserialización
 	public String getToken() {
 		return token;
 	}

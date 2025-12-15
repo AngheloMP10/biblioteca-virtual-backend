@@ -24,14 +24,20 @@ public class Libro implements Serializable {
 	@NotEmpty(message = "El título no debe estar vacío")
 	private String titulo;
 
-	// CAMBIO 1: FetchType.EAGER para que los autores carguen SIEMPRE
-	// @JsonIgnoreProperties evita el bucle infinito (Libro -> Autor -> Libro...)
+	/*
+	 * Relación ManyToMany cargada de forma EAGER porque los autores
+	 * forman parte esencial del modelo de lectura del libro.
+	 * Se ignora la propiedad inversa para evitar ciclos de serialización.
+	 */
 	@ManyToMany(fetch = FetchType.EAGER)
 	@JoinTable(name = "libro_autor", joinColumns = @JoinColumn(name = "libro_id"), inverseJoinColumns = @JoinColumn(name = "autor_id"))
 	@JsonIgnoreProperties("libros")
 	private List<Autor> autores = new ArrayList<>();
 
-	// CAMBIO 2: FetchType.EAGER para asegurar que el género llegue al Front
+	/*
+	 * El género se carga de forma inmediata para garantizar que
+	 * esté disponible en las respuestas al frontend.
+	 */
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "genero_id")
 	@JsonIgnoreProperties("libros")
@@ -45,9 +51,11 @@ public class Libro implements Serializable {
 
 	private String portada;
 
-	// CAMBIO 3 (CRÍTICO): @JsonIgnore
-	// Esto arregla el Error 500. Le dice al sistema:
-	// "No intentes convertir la lista de préstamos a JSON, ignórala".
+	/*
+	 * La relación con préstamos se mantiene LAZY y se excluye de JSON
+	 * para evitar errores de serialización y sobrecarga innecesaria
+	 * en operaciones donde no se requiere esta información.
+	 */
 	@OneToMany(mappedBy = "libro", fetch = FetchType.LAZY)
 	@JsonIgnore
 	private List<Prestamo> prestamos = new ArrayList<>();

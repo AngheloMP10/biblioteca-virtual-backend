@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import java.util.List;
 import java.util.ArrayList;
 
-// Importamos la protección para JSON
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
@@ -21,17 +20,22 @@ public class Usuario {
 	@Column(nullable = false)
 	private String password;
 
+	/*
+	 * El rol se modela como String para mantener compatibilidad
+	 * directa con Spring Security y evitar conversiones adicionales.
+	 */
 	@Column(nullable = false)
-	private String role; // "ROLE_ADMIN" o "ROLE_USER"
+	private String role;
 
-	// AGREGAMOS ESTO: Relación con Préstamos
-	// Usamos @JsonIgnore para que al loguearte no intente descargar
-	// todo el historial de préstamos y cause un error o lentitud.
+	/*
+	 * La relación con préstamos se mantiene LAZY y se excluye del JSON
+	 * para evitar cargas innecesarias y exposición de datos históricos
+	 * en operaciones de autenticación o perfil.
+	 */
 	@OneToMany(mappedBy = "usuario", fetch = FetchType.LAZY)
 	@JsonIgnore
 	private List<Prestamo> prestamos = new ArrayList<>();
 
-	// Constructores
 	public Usuario() {
 	}
 
