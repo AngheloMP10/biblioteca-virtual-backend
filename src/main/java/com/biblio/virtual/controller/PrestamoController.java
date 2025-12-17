@@ -8,7 +8,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import com.biblio.virtual.model.Prestamo;
+import com.biblio.virtual.dto.PrestamoDTO;
+import com.biblio.virtual.mapper.PrestamoMapper;
 import com.biblio.virtual.service.IPrestamoService;
 
 @RestController
@@ -16,9 +17,11 @@ import com.biblio.virtual.service.IPrestamoService;
 public class PrestamoController {
 
 	private final IPrestamoService prestamoService;
+	private final PrestamoMapper prestamoMapper;
 
-	public PrestamoController(IPrestamoService prestamoService) {
+	public PrestamoController(IPrestamoService prestamoService, PrestamoMapper prestamoMapper) {
 		this.prestamoService = prestamoService;
+		this.prestamoMapper = prestamoMapper;
 	}
 
 	// Solicitud de préstamo accesible a USER y ADMIN
@@ -37,19 +40,19 @@ public class PrestamoController {
 	// Listado completo de préstamos, solo para ADMIN
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	@GetMapping("/todos")
-	public ResponseEntity<List<Prestamo>> listarTodos() {
-		return ResponseEntity.ok(prestamoService.findAll());
+	public ResponseEntity<List<PrestamoDTO>> listarTodos() {
+		return ResponseEntity.ok(prestamoMapper.toDtoList(prestamoService.findAll()));
 	}
 
 	// Listado de préstamos del usuario actual
 	@PreAuthorize("hasAuthority('ROLE_USER')")
 	@GetMapping("/mios")
-	public ResponseEntity<List<Prestamo>> misPrestamos() {
+	public ResponseEntity<List<PrestamoDTO>> misPrestamos() {
 
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String username = auth.getName();
 
-		return ResponseEntity.ok(prestamoService.findByUsername(username));
+		return ResponseEntity.ok(prestamoMapper.toDtoList(prestamoService.findByUsername(username)));
 	}
 
 	// Aprobación de préstamo, operación crítica restringida a ADMIN

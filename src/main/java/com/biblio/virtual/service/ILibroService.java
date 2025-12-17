@@ -7,7 +7,7 @@ import com.biblio.virtual.model.Libro;
 
 public interface ILibroService {
 
-	void save(Libro libro);
+	Libro save(Libro libro);
 
 	Libro findById(Long id);
 

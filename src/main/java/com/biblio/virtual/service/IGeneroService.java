@@ -5,7 +5,7 @@ import com.biblio.virtual.model.Genero;
 
 public interface IGeneroService {
 
-	void save(Genero genero);
+	Genero save(Genero genero);
 
 	Genero findById(Long id);
 

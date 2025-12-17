@@ -21,11 +21,6 @@ public class Genero implements Serializable {
 	@NotEmpty(message = "El nombre del género no debe estar vacío")
 	private String nombre;
 
-	/*
-	 * La relación con libros se excluye de la serialización JSON
-	 * para evitar la inicialización de relaciones LAZY y ciclos
-	 * innecesarios en las respuestas.
-	 */
 	@OneToMany(mappedBy = "genero")
 	@JsonIgnore
 	private List<Libro> libros = new ArrayList<>();

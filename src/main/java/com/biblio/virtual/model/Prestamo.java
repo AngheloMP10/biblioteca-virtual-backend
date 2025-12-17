@@ -4,8 +4,6 @@ import jakarta.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDate;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 @Entity
 @Table(name = "prestamos")
 public class Prestamo implements Serializable {
@@ -22,38 +20,25 @@ public class Prestamo implements Serializable {
 	@Column(name = "fecha_devolucion")
 	private LocalDate fechaDevolucion;
 
-	/*
-	 * El estado se modela como String para mantener flexibilidad
-	 * y evitar acoplar la persistencia a un enum cerrado.
-	 */
 	@Column(nullable = false)
 	private String estado;
 
-	/*
-	 * Relación con Usuario cargada de forma EAGER para que los
-	 * datos necesarios del solicitante estén disponibles
-	 * sin consultas adicionales.
-	 * Se ocultan campos sensibles y relaciones inversas.
-	 */
+	// Relación con Usuario, EAGER por simplicidad y estabilidad inicial.
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "usuario_id", nullable = false)
-	@JsonIgnoreProperties({ "prestamos", "password", "role" })
 	private Usuario usuario;
 
-	/*
-	 * Relación con Libro cargada de forma inmediata para permitir
-	 * mostrar información básica del libro en listados de préstamos,
-	 * evitando accesos diferidos fuera de sesión.
-	 */
+	// Relación con Libro, EAGER para poder mapear a DTO sin
+	// LazyInitializationException.
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "libro_id", nullable = false)
-	@JsonIgnoreProperties("prestamos")
 	private Libro libro;
 
 	public Prestamo() {
 	}
 
 	// Getters y setters
+
 	public Long getId() {
 		return id;
 	}

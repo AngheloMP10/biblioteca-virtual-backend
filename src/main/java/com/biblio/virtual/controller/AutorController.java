@@ -1,7 +1,10 @@
 package com.biblio.virtual.controller;
 
+import com.biblio.virtual.dto.AutorDTO;
+import com.biblio.virtual.mapper.AutorMapper;
 import com.biblio.virtual.model.Autor;
 import com.biblio.virtual.service.IAutorService;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -13,67 +16,62 @@ import java.util.List;
 public class AutorController {
 
 	private final IAutorService service;
+	private final AutorMapper autorMapper;
 
-	public AutorController(IAutorService service) {
+	public AutorController(IAutorService service, AutorMapper autorMapper) {
 		this.service = service;
+		this.autorMapper = autorMapper;
 	}
 
-	// Creación restringida a ADMIN para control del catálogo
+	// CREATE
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
-	@PostMapping(consumes = "application/json", produces = "application/json")
-	public ResponseEntity<Autor> guardar(@RequestBody Autor autor) {
+	@PostMapping
+	public ResponseEntity<AutorDTO> guardar(@RequestBody AutorDTO autorDto) {
 
-		// Se asegura inicialización para evitar errores de persistencia
+		Autor autor = autorMapper.toEntity(autorDto);
+
+		// Seguridad defensiva
 		if (autor.getLibros() == null) {
 			autor.setLibros(new java.util.ArrayList<>());
 		}
 
-		Autor nuevoAutor = service.save(autor);
-		return ResponseEntity.ok(nuevoAutor);
+		Autor guardado = service.save(autor);
+		return ResponseEntity.ok(autorMapper.toDto(guardado));
 	}
 
-	// Acceso de lectura permitido a ADMIN y USER
+	// READ - por ID
 	@PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_USER')")
 	@GetMapping("/{id}")
-	public ResponseEntity<Autor> buscarPorId(@PathVariable Long id) {
+	public ResponseEntity<AutorDTO> buscarPorId(@PathVariable Long id) {
 		Autor autor = service.findById(id);
-		return (autor != null)
-				? ResponseEntity.ok(autor)
-				: ResponseEntity.notFound().build();
+		return (autor != null) ? ResponseEntity.ok(autorMapper.toDto(autor)) : ResponseEntity.notFound().build();
 	}
 
-	// Listado completo accesible para usuarios autenticados
+	// READ - listar
 	@PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_USER')")
 	@GetMapping
-	public ResponseEntity<List<Autor>> listar() {
-		return ResponseEntity.ok(service.findAll());
+	public ResponseEntity<List<AutorDTO>> listar() {
+		return ResponseEntity.ok(autorMapper.toDtoList(service.findAll()));
 	}
 
-	// Actualización limitada a ADMIN para mantener integridad
+	// UPDATE
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
-	@PutMapping(value = "/{id}", consumes = "application/json", produces = "application/json")
-	public ResponseEntity<Autor> actualizar(
-			@PathVariable Long id,
-			@RequestBody Autor autorActualizado) {
+	@PutMapping("/{id}")
+	public ResponseEntity<AutorDTO> actualizar(@PathVariable Long id, @RequestBody AutorDTO autorDto) {
 
-		Autor autor = service.findById(id);
-		if (autor == null) {
+		Autor existente = service.findById(id);
+		if (existente == null) {
 			return ResponseEntity.notFound().build();
 		}
 
-		// Solo se sobrescriben campos editables
-		autor.setNombre(autorActualizado.getNombre());
-		autor.setUrlFoto(autorActualizado.getUrlFoto());
+		existente.setNombre(autorDto.getNombre());
+		existente.setUrlFoto(autorDto.getUrlFoto());
 
-		if (autorActualizado.getLibros() != null) {
-			autor.setLibros(autorActualizado.getLibros());
-		}
-
-		Autor actualizado = service.save(autor);
-		return ResponseEntity.ok(actualizado);
+		Autor actualizado = service.save(existente);
+		return ResponseEntity.ok(autorMapper.toDto(actualizado));
 	}
 
-	// Eliminación exclusiva de ADMIN por impacto en el dominio
+	// DELETE
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	@DeleteMapping("/{id}")
 	public ResponseEntity<String> eliminar(@PathVariable Long id) {

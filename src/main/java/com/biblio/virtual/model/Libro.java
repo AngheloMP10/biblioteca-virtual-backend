@@ -8,9 +8,6 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 @Entity
 @Table(name = "libros")
 public class Libro implements Serializable {
@@ -24,23 +21,12 @@ public class Libro implements Serializable {
 	@NotEmpty(message = "El título no debe estar vacío")
 	private String titulo;
 
-	/*
-	 * Relación ManyToMany cargada de forma EAGER porque los autores
-	 * forman parte esencial del modelo de lectura del libro.
-	 * Se ignora la propiedad inversa para evitar ciclos de serialización.
-	 */
 	@ManyToMany(fetch = FetchType.EAGER)
 	@JoinTable(name = "libro_autor", joinColumns = @JoinColumn(name = "libro_id"), inverseJoinColumns = @JoinColumn(name = "autor_id"))
-	@JsonIgnoreProperties("libros")
 	private List<Autor> autores = new ArrayList<>();
 
-	/*
-	 * El género se carga de forma inmediata para garantizar que
-	 * esté disponible en las respuestas al frontend.
-	 */
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "genero_id")
-	@JsonIgnoreProperties("libros")
 	private Genero genero;
 
 	@NotNull(message = "El año de publicación no debe estar vacío")
@@ -51,16 +37,10 @@ public class Libro implements Serializable {
 
 	private String portada;
 
-	/*
-	 * La relación con préstamos se mantiene LAZY y se excluye de JSON
-	 * para evitar errores de serialización y sobrecarga innecesaria
-	 * en operaciones donde no se requiere esta información.
-	 */
 	@OneToMany(mappedBy = "libro", fetch = FetchType.LAZY)
-	@JsonIgnore
 	private List<Prestamo> prestamos = new ArrayList<>();
 
-	// --- Getters y Setters ---
+	// Getters y Setters
 
 	public Long getId() {
 		return id;

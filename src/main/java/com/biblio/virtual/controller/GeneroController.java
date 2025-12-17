@@ -6,6 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import com.biblio.virtual.dto.GeneroDTO;
+import com.biblio.virtual.mapper.GeneroMapper;
 import com.biblio.virtual.model.Genero;
 import com.biblio.virtual.service.IGeneroService;
 
@@ -14,58 +16,67 @@ import com.biblio.virtual.service.IGeneroService;
 public class GeneroController {
 
 	private final IGeneroService service;
+	private final GeneroMapper generoMapper;
 
-	public GeneroController(IGeneroService service) {
+	public GeneroController(IGeneroService service, GeneroMapper generoMapper) {
 		this.service = service;
+		this.generoMapper = generoMapper;
 	}
 
-	// Solo ADMIN puede crear géneros para controlar catálogo
+	// CREATE - Solo ADMIN
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	@PostMapping
-	public ResponseEntity<Genero> guardar(@RequestBody Genero genero) {
-		service.save(genero);
-		return ResponseEntity.ok(genero);
+	public ResponseEntity<GeneroDTO> guardar(@RequestBody GeneroDTO generoDto) {
+
+		Genero genero = generoMapper.toEntity(generoDto);
+		Genero guardado = service.save(genero);
+
+		return ResponseEntity.ok(generoMapper.toDto(guardado));
 	}
 
-	// Lectura accesible a ADMIN y USER
+	// READ - Listar
 	@PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_USER')")
 	@GetMapping
-	public ResponseEntity<List<Genero>> listar() {
-		return ResponseEntity.ok(service.findAll());
+	public ResponseEntity<List<GeneroDTO>> listar() {
+		return ResponseEntity.ok(generoMapper.toDtoList(service.findAll()));
 	}
 
-	// Lectura por ID, restringida a usuarios autenticados
+	// READ - Buscar por ID
 	@PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_USER')")
 	@GetMapping("/{id}")
-	public ResponseEntity<Genero> buscarPorId(@PathVariable Long id) {
+	public ResponseEntity<GeneroDTO> buscarPorId(@PathVariable Long id) {
+
 		Genero genero = service.findById(id);
-		return (genero != null) ? ResponseEntity.ok(genero) : ResponseEntity.notFound().build();
+		return (genero != null) ? ResponseEntity.ok(generoMapper.toDto(genero)) : ResponseEntity.notFound().build();
 	}
 
-	// Solo ADMIN puede actualizar para mantener integridad del catálogo
+	// UPDATE - Solo ADMIN
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	@PutMapping("/{id}")
-	public ResponseEntity<Genero> actualizar(@PathVariable Long id, @RequestBody Genero genero) {
+	public ResponseEntity<GeneroDTO> actualizar(@PathVariable Long id, @RequestBody GeneroDTO generoDto) {
+
 		Genero existente = service.findById(id);
-		if (existente != null) {
-			existente.setNombre(genero.getNombre()); // Solo actualizamos el nombre
-			service.save(existente);
-			return ResponseEntity.ok(existente);
-		} else {
+		if (existente == null) {
 			return ResponseEntity.notFound().build();
 		}
+
+		existente.setNombre(generoDto.getNombre());
+		Genero actualizado = service.save(existente);
+
+		return ResponseEntity.ok(generoMapper.toDto(actualizado));
 	}
 
-	// Solo ADMIN puede eliminar para evitar inconsistencias
+	// DELETE - Solo ADMIN
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+
 		Genero existente = service.findById(id);
-		if (existente != null) {
-			service.delete(id);
-			return ResponseEntity.noContent().build(); // Respuesta estándar sin cuerpo
-		} else {
+		if (existente == null) {
 			return ResponseEntity.notFound().build();
 		}
+
+		service.delete(id);
+		return ResponseEntity.noContent().build();
 	}
 }

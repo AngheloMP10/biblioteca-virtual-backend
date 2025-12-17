@@ -6,9 +6,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import com.biblio.virtual.dto.LibroDTO;
+import com.biblio.virtual.mapper.LibroMapper;
 import com.biblio.virtual.model.Libro;
-import com.biblio.virtual.service.IAutorService;
-import com.biblio.virtual.service.IGeneroService;
 import com.biblio.virtual.service.ILibroService;
 
 @RestController
@@ -16,80 +16,81 @@ import com.biblio.virtual.service.ILibroService;
 public class LibrosController {
 
 	private final ILibroService libroService;
-	private final IGeneroService generoService;
-	private final IAutorService autorService;
+	private final LibroMapper libroMapper;
 
-	public LibrosController(ILibroService libroService, IGeneroService generoService, IAutorService autorService) {
+	public LibrosController(ILibroService libroService, LibroMapper libroMapper) {
 		this.libroService = libroService;
-		this.generoService = generoService;
-		this.autorService = autorService;
+		this.libroMapper = libroMapper;
 	}
 
-	// Solo ADMIN puede crear nuevos libros
-	// CREATE - Crear nuevo libro con validación de portada por defecto
+	// CREATE
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	@PostMapping
-	public ResponseEntity<Libro> guardar(@RequestBody Libro libro) {
+	public ResponseEntity<LibroDTO> guardar(@RequestBody LibroDTO libroDto) {
+
+		Libro libro = libroMapper.toEntity(libroDto);
+
 		// Portada por defecto
 		if (libro.getPortada() == null || libro.getPortada().isEmpty()) {
 			libro.setPortada("_default.jpg");
 		}
-		libroService.save(libro);
-		return ResponseEntity.ok(libro);
+
+		Libro guardado = libroService.save(libro);
+
+		return ResponseEntity.ok(libroMapper.toDto(guardado));
 	}
 
-	// ADMIN y USER pueden listar libros
-	// READ - Listar todos los libros
+	// READ - Listar
 	@PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_USER')")
 	@GetMapping
-	public ResponseEntity<List<Libro>> listar() {
-		return ResponseEntity.ok(libroService.findAll());
+	public ResponseEntity<List<LibroDTO>> listar() {
+		List<Libro> libros = libroService.findAll();
+		return ResponseEntity.ok(libroMapper.toDtoList(libros));
 	}
 
-	// ADMIN y USER pueden buscar libro por ID
-	// READ - Buscar libro por ID específico
+	// READ - Buscar por ID
 	@PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_USER')")
 	@GetMapping("/{id}")
-	public ResponseEntity<Libro> buscarPorId(@PathVariable Long id) {
+	public ResponseEntity<LibroDTO> buscarPorId(@PathVariable Long id) {
 		Libro libro = libroService.findById(id);
 		if (libro != null) {
-			return ResponseEntity.ok(libro);
-		} else {
-			return ResponseEntity.notFound().build();
+			return ResponseEntity.ok(libroMapper.toDto(libro));
 		}
+		return ResponseEntity.notFound().build();
 	}
 
-	// Solo ADMIN puede actualizar libros
-	// UPDATE - Actualizar libro existente con manejo completo de relaciones
+	// UPDATE
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	@PutMapping("/{id}")
-	public ResponseEntity<Libro> actualizar(@PathVariable Long id, @RequestBody Libro libro) {
+	public ResponseEntity<LibroDTO> actualizar(@PathVariable Long id, @RequestBody LibroDTO libroDto) {
 		Libro existente = libroService.findById(id);
-		if (existente != null) {
-			existente.setTitulo(libro.getTitulo());
-			existente.setPortada(libro.getPortada());
-			existente.setAnioPublicacion(libro.getAnioPublicacion());
-			existente.setDisponible(libro.isDisponible());
 
-			// Relación con autores
-			if (libro.getAutores() != null && !libro.getAutores().isEmpty()) {
-				existente.setAutores(libro.getAutores());
-			}
-
-			// Relación con género
-			if (libro.getGenero() != null) {
-				existente.setGenero(libro.getGenero());
-			}
-
-			libroService.save(existente);
-			return ResponseEntity.ok(existente);
-		} else {
+		if (existente == null) {
 			return ResponseEntity.notFound().build();
 		}
+
+		existente.setTitulo(libroDto.getTitulo());
+		existente.setPortada(libroDto.getPortada());
+		existente.setAnioPublicacion(libroDto.getAnioPublicacion());
+		existente.setDisponible(libroDto.isDisponible());
+
+		// MapStruct para relaciones
+		Libro updateInfo = libroMapper.toEntity(libroDto);
+
+		if (updateInfo.getAutores() != null && !updateInfo.getAutores().isEmpty()) {
+			existente.setAutores(updateInfo.getAutores());
+		}
+
+		if (updateInfo.getGenero() != null) {
+			existente.setGenero(updateInfo.getGenero());
+		}
+
+		Libro actualizado = libroService.save(existente);
+
+		return ResponseEntity.ok(libroMapper.toDto(actualizado));
 	}
 
-	// Solo ADMIN puede eliminar libros
-	// DELETE - Eliminar libro por ID
+	// DELETE
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> eliminar(@PathVariable Long id) {
@@ -97,8 +98,7 @@ public class LibrosController {
 		if (existente != null) {
 			libroService.delete(id);
 			return ResponseEntity.noContent().build();
-		} else {
-			return ResponseEntity.notFound().build();
 		}
+		return ResponseEntity.notFound().build();
 	}
 }

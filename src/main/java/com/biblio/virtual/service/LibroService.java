@@ -17,8 +17,8 @@ public class LibroService implements ILibroService {
 	private ILibroRepository repo;
 
 	@Override
-	public void save(Libro libro) {
-		repo.save(libro);
+	public Libro save(Libro libro) {
+		return repo.save(libro);
 	}
 
 	@Override

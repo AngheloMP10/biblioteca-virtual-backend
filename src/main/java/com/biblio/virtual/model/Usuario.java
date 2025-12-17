@@ -20,18 +20,10 @@ public class Usuario {
 	@Column(nullable = false)
 	private String password;
 
-	/*
-	 * El rol se modela como String para mantener compatibilidad
-	 * directa con Spring Security y evitar conversiones adicionales.
-	 */
+	// String para mantener compatibilidad con Spring Security
 	@Column(nullable = false)
 	private String role;
 
-	/*
-	 * La relación con préstamos se mantiene LAZY y se excluye del JSON
-	 * para evitar cargas innecesarias y exposición de datos históricos
-	 * en operaciones de autenticación o perfil.
-	 */
 	@OneToMany(mappedBy = "usuario", fetch = FetchType.LAZY)
 	@JsonIgnore
 	private List<Prestamo> prestamos = new ArrayList<>();
