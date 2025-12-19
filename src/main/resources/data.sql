@@ -15,14 +15,14 @@ INSERT INTO generos (nombre) VALUES ('Drama');
 -- ========================
 -- LIBROS
 -- ========================
-INSERT INTO libros (titulo, anio_publicacion, disponible, portada, genero_id)
-VALUES ('Cien Años de Soledad', 1967, true, NULL, 1);
+INSERT INTO libros (titulo, anio_publicacion, stock, disponible, portada, genero_id)
+VALUES ('Cien Años de Soledad', 1967, 5, true, NULL, 1);
 
-INSERT INTO libros (titulo, anio_publicacion, disponible, portada, genero_id)
-VALUES ('La Ciudad y los Perros', 1963, true, NULL, 2);
+INSERT INTO libros (titulo, anio_publicacion, stock, disponible, portada, genero_id)
+VALUES ('La Ciudad y los Perros', 1963, 3, true, NULL, 2);
 
-INSERT INTO libros (titulo, anio_publicacion, disponible, portada, genero_id)
-VALUES ('La Casa de los Espíritus', 1982, true, NULL, 1);
+INSERT INTO libros (titulo, anio_publicacion, stock, disponible, portada, genero_id)
+VALUES ('La Casa de los Espíritus', 1982, 0, false, NULL, 1);
 
 -- ========================
 -- RELACIÓN LIBROS - AUTORES (tabla intermedia libro_autor)

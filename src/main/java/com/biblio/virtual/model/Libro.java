@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
@@ -32,6 +33,10 @@ public class Libro implements Serializable {
 	@NotNull(message = "El año de publicación no debe estar vacío")
 	@Column(name = "anio_publicacion")
 	private Integer anioPublicacion;
+
+	@NotNull(message = "El stock es obligatorio")
+	@Min(value = 0, message = "El stock no puede ser negativo")
+	private Integer stock;
 
 	private boolean disponible;
 
@@ -80,6 +85,15 @@ public class Libro implements Serializable {
 
 	public void setAnioPublicacion(Integer anioPublicacion) {
 		this.anioPublicacion = anioPublicacion;
+	}
+
+	public Integer getStock() {
+		return stock;
+	}
+
+	public void setStock(Integer stock) {
+		this.stock = stock;
+		this.disponible = (stock != null && stock > 0);
 	}
 
 	public boolean isDisponible() {

@@ -36,7 +36,7 @@ public class PrestamoService implements IPrestamoService {
 		Libro libro = libroRepo.findById(libroId).orElseThrow(() -> new RuntimeException("Libro no encontrado"));
 
 		// Validar disponibilidad del libro
-		if (!libro.isDisponible()) {
+		if (libro.getStock() <= 0) {
 			throw new RuntimeException("El libro no está disponible");
 		}
 
@@ -53,23 +53,21 @@ public class PrestamoService implements IPrestamoService {
 	@Override
 	@Transactional
 	public void aprobarPrestamo(Long id) {
-		Prestamo prestamo = prestamoRepo.findById(id)
-				.orElseThrow(() -> new RuntimeException("Préstamo no encontrado"));
 
-		// Validar disponibilidad del libro
-		if (!prestamo.getLibro().isDisponible()) {
-			throw new RuntimeException("El libro ya no está disponible");
+		Prestamo prestamo = prestamoRepo.findById(id).orElseThrow(() -> new RuntimeException("Préstamo no encontrado"));
+
+		Libro libro = prestamo.getLibro();
+
+		if (libro.getStock() <= 0) {
+			throw new RuntimeException("No hay stock disponible para este libro");
 		}
 
-		// Cambiar estado y fecha de devolución
 		prestamo.setEstado("APROBADO");
 		prestamo.setFechaDevolucion(LocalDate.now().plusDays(7));
 
-		// Marcar libro como no disponible
-		Libro libro = prestamo.getLibro();
-		libro.setDisponible(false);
-		libroRepo.save(libro);
+		libro.setStock(libro.getStock() - 1);
 
+		libroRepo.save(libro);
 		prestamoRepo.save(prestamo);
 	}
 
@@ -77,9 +75,30 @@ public class PrestamoService implements IPrestamoService {
 	@Transactional
 	public void rechazarPrestamo(Long id) {
 		// Cambiar estado a RECHAZADO
-		Prestamo prestamo = prestamoRepo.findById(id)
-				.orElseThrow(() -> new RuntimeException("Préstamo no encontrado"));
+		Prestamo prestamo = prestamoRepo.findById(id).orElseThrow(() -> new RuntimeException("Préstamo no encontrado"));
 		prestamo.setEstado("RECHAZADO");
+		prestamoRepo.save(prestamo);
+	}
+
+	@Override
+	@Transactional
+	public void finalizarPrestamo(Long id) {
+
+		Prestamo prestamo = prestamoRepo.findById(id).orElseThrow(() -> new RuntimeException("Préstamo no encontrado"));
+
+		if (!"APROBADO".equals(prestamo.getEstado())) {
+			throw new RuntimeException("Solo se pueden finalizar préstamos aprobados");
+		}
+
+		// Cambiar estado
+		prestamo.setEstado("FINALIZADO");
+		prestamo.setFechaDevolucion(LocalDate.now());
+
+		// Recuperar stock
+		Libro libro = prestamo.getLibro();
+		libro.setStock(libro.getStock() + 1);
+
+		libroRepo.save(libro);
 		prestamoRepo.save(prestamo);
 	}
 

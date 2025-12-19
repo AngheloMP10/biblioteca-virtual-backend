@@ -15,8 +15,8 @@ public interface LibroMapper {
 
 	// DTO a Entidad
 	@Mapping(target = "prestamos", ignore = true)
+	@Mapping(target = "disponible", ignore = true)
 	Libro toEntity(LibroDTO dto);
 
-	// Listas
 	List<LibroDTO> toDtoList(List<Libro> libros);
 }

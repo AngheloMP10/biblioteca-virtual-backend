@@ -63,6 +63,7 @@ public class LibrosController {
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	@PutMapping("/{id}")
 	public ResponseEntity<LibroDTO> actualizar(@PathVariable Long id, @RequestBody LibroDTO libroDto) {
+
 		Libro existente = libroService.findById(id);
 
 		if (existente == null) {
@@ -72,17 +73,14 @@ public class LibrosController {
 		existente.setTitulo(libroDto.getTitulo());
 		existente.setPortada(libroDto.getPortada());
 		existente.setAnioPublicacion(libroDto.getAnioPublicacion());
-		existente.setDisponible(libroDto.isDisponible());
+		existente.setStock(libroDto.getStock());
 
-		// MapStruct para relaciones
-		Libro updateInfo = libroMapper.toEntity(libroDto);
-
-		if (updateInfo.getAutores() != null && !updateInfo.getAutores().isEmpty()) {
-			existente.setAutores(updateInfo.getAutores());
+		if (libroDto.getAutores() != null) {
+			existente.setAutores(libroMapper.toEntity(libroDto).getAutores());
 		}
 
-		if (updateInfo.getGenero() != null) {
-			existente.setGenero(updateInfo.getGenero());
+		if (libroDto.getGenero() != null) {
+			existente.setGenero(libroMapper.toEntity(libroDto).getGenero());
 		}
 
 		Libro actualizado = libroService.save(existente);

@@ -70,4 +70,12 @@ public class PrestamoController {
 		prestamoService.rechazarPrestamo(id);
 		return ResponseEntity.ok("Solicitud rechazada.");
 	}
+
+	// Finalizar / devolver préstamo (solo ADMIN)
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	@PostMapping("/finalizar/{id}")
+	public ResponseEntity<?> finalizarPrestamo(@PathVariable Long id) {
+		prestamoService.finalizarPrestamo(id);
+		return ResponseEntity.ok("Libro devuelto correctamente.");
+	}
 }
