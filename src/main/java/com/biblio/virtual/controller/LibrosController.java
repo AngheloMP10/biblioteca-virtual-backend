@@ -11,6 +11,11 @@ import com.biblio.virtual.mapper.LibroMapper;
 import com.biblio.virtual.model.Libro;
 import com.biblio.virtual.service.ILibroService;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+
 @RestController
 @RequestMapping("/libros")
 public class LibrosController {
@@ -40,12 +45,26 @@ public class LibrosController {
 		return ResponseEntity.ok(libroMapper.toDto(guardado));
 	}
 
-	// READ - Listar
+	// READ - Listar con Paginación y Búsqueda
 	@PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_USER')")
 	@GetMapping
-	public ResponseEntity<List<LibroDTO>> listar() {
-		List<Libro> libros = libroService.findAll();
-		return ResponseEntity.ok(libroMapper.toDtoList(libros));
+	public ResponseEntity<Page<LibroDTO>> listar(@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "6") int size, @RequestParam(defaultValue = "id") String order,
+			@RequestParam(defaultValue = "true") boolean asc, @RequestParam(required = false) String keyword) {
+		// Ordenamiento
+		Sort sort = asc ? Sort.by(order).ascending() : Sort.by(order).descending();
+		Pageable pageable = PageRequest.of(page, size, sort);
+
+		Page<Libro> librosPage;
+
+		if (keyword != null && !keyword.trim().isEmpty()) {
+			librosPage = libroService.buscarPorTitulo(keyword, pageable);
+		} else {
+			librosPage = libroService.findAll(pageable);
+		}
+
+		Page<LibroDTO> dtoPage = librosPage.map(libroMapper::toDto);
+		return ResponseEntity.ok(dtoPage);
 	}
 
 	// READ - Buscar por ID

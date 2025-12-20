@@ -14,6 +14,8 @@ public interface ILibroService {
 	List<Libro> findAll();
 
 	Page<Libro> findAll(Pageable pageable);
+	
+	Page<Libro> buscarPorTitulo(String termino, Pageable pageable);
 
 	void delete(Long id);
 }

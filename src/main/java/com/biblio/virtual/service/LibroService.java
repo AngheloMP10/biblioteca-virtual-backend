@@ -14,30 +14,35 @@ import com.biblio.virtual.repository.ILibroRepository;
 public class LibroService implements ILibroService {
 
 	@Autowired
-	private ILibroRepository repo;
+	private ILibroRepository libroRepository;
 
 	@Override
 	public Libro save(Libro libro) {
-		return repo.save(libro);
+		return libroRepository.save(libro);
 	}
 
 	@Override
 	public Libro findById(Long id) {
-		return repo.findById(id).orElse(null);
+		return libroRepository.findById(id).orElse(null);
 	}
 
 	@Override
 	public List<Libro> findAll() {
-		return repo.findAll();
+		return libroRepository.findAll();
 	}
 
 	@Override
 	public Page<Libro> findAll(Pageable pageable) {
-		return repo.findAll(pageable);
+		return libroRepository.findAll(pageable);
+	}
+
+	@Override
+	public Page<Libro> buscarPorTitulo(String termino, Pageable pageable) {
+		return libroRepository.findByTituloContainingIgnoreCase(termino, pageable);
 	}
 
 	@Override
 	public void delete(Long id) {
-		repo.deleteById(id);
+		libroRepository.deleteById(id);
 	}
 }
