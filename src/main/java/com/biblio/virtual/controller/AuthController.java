@@ -23,6 +23,8 @@ import com.biblio.virtual.model.Usuario;
 import com.biblio.virtual.repository.UsuarioRepository;
 import com.biblio.virtual.util.JwtUtil;
 
+import com.biblio.virtual.security.Roles;
+
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
@@ -43,67 +45,47 @@ public class AuthController {
 	public ResponseEntity<?> login(@RequestBody AuthRequest authRequest) {
 
 		/*
-		 * Se delega la validación de credenciales a Spring Security
-		 * para mantener la lógica de autenticación centralizada.
+		 * Se delega la validación de credenciales a Spring Security para mantener la
+		 * lógica de autenticación centralizada.
 		 */
 		try {
 			authenticationManager.authenticate(
-					new UsernamePasswordAuthenticationToken(
-							authRequest.getUsername(),
-							authRequest.getPassword()));
+					new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
 		} catch (BadCredentialsException e) {
-			return ResponseEntity
-					.status(HttpStatus.UNAUTHORIZED)
-					.body("Credenciales inválidas");
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credenciales inválidas");
 		}
 
 		/*
-		 * El usuario se recupera desde persistencia para construir
-		 * el token con información confiable y actual.
+		 * El usuario se recupera desde persistencia para construir el token con
+		 * información confiable y actual.
 		 */
-		Usuario usuario = usuarioRepository
-				.findByUsername(authRequest.getUsername())
+		Usuario usuario = usuarioRepository.findByUsername(authRequest.getUsername())
 				.orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
 		/*
-		 * El JWT se genera con username y rol para habilitar
-		 * autorización basada en roles sin consultas adicionales.
+		 * El JWT se genera con username y rol para habilitar autorización basada en
+		 * roles sin consultas adicionales.
 		 */
-		String token = jwtUtil.generateToken(
-				usuario.getUsername(),
-				usuario.getRole());
+		String token = jwtUtil.generateToken(usuario.getUsername(), usuario.getRole());
 
-		return ResponseEntity.ok(
-				new AuthResponse(
-						token,
-						usuario.getUsername(),
-						usuario.getRole()));
+		return ResponseEntity.ok(new AuthResponse(token, usuario.getUsername(), usuario.getRole()));
 	}
 
 	@PostMapping("/register")
 	public ResponseEntity<?> register(@RequestBody AuthRequest authRequest) {
 
-		/*
-		 * Se valida unicidad a nivel aplicación para evitar
-		 * excepciones de persistencia y dar feedback claro.
-		 */
-		if (usuarioRepository
-				.findByUsername(authRequest.getUsername())
-				.isPresent()) {
-			return ResponseEntity
-					.badRequest()
-					.body("El usuario ya existe");
+		if (usuarioRepository.findByUsername(authRequest.getUsername()).isPresent()) {
+			return ResponseEntity.badRequest().body("El usuario ya existe");
 		}
 
 		/*
-		 * La contraseña se persiste cifrada y el rol
-		 * se asigna explícitamente por seguridad.
+		 * La contraseña se persiste cifrada y el rol se asigna explícitamente por
+		 * seguridad.
 		 */
 		Usuario usuario = new Usuario();
 		usuario.setUsername(authRequest.getUsername());
-		usuario.setPassword(
-				passwordEncoder.encode(authRequest.getPassword()));
-		usuario.setRole("ROLE_USER");
+		usuario.setPassword(passwordEncoder.encode(authRequest.getPassword()));
+		usuario.setRole(Roles.USER);
 
 		usuarioRepository.save(usuario);
 
@@ -111,8 +93,8 @@ public class AuthController {
 	}
 
 	/*
-	 * Endpoint de diagnóstico para validar el contexto de
-	 * seguridad y el contenido del token autenticado.
+	 * Endpoint de diagnóstico para validar el contexto de seguridad y el contenido
+	 * del token autenticado.
 	 */
 	@GetMapping("/me")
 	public ResponseEntity<Map<String, Object>> verifyUser() {
@@ -120,15 +102,10 @@ public class AuthController {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
 		if (auth == null) {
-			return ResponseEntity
-					.status(HttpStatus.UNAUTHORIZED)
-					.body(Map.of("error", "No hay autenticación"));
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "No hay autenticación"));
 		}
 
-		return ResponseEntity.ok(
-				Map.of(
-						"username", auth.getName(),
-						"authorities", auth.getAuthorities(),
-						"isAuthenticated", auth.isAuthenticated()));
+		return ResponseEntity.ok(Map.of("username", auth.getName(), "authorities", auth.getAuthorities(),
+				"isAuthenticated", auth.isAuthenticated()));
 	}
 }

@@ -24,7 +24,7 @@ public class GeneroController {
 	}
 
 	// CREATE - Solo ADMIN
-	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	@PreAuthorize("hasAuthority(@roles.ADMIN())")
 	@PostMapping
 	public ResponseEntity<GeneroDTO> guardar(@RequestBody GeneroDTO generoDto) {
 
@@ -35,25 +35,28 @@ public class GeneroController {
 	}
 
 	// READ - Listar
-	@PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_USER')")
+	@PreAuthorize("hasAnyAuthority(@roles.ADMIN(), @roles.USER())")
 	@GetMapping
 	public ResponseEntity<List<GeneroDTO>> listar() {
 		return ResponseEntity.ok(generoMapper.toDtoList(service.findAll()));
 	}
 
 	// READ - Buscar por ID
-	@PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_USER')")
+	@PreAuthorize("hasAnyAuthority(@roles.ADMIN(), @roles.USER())")
 	@GetMapping("/{id}")
 	public ResponseEntity<GeneroDTO> buscarPorId(@PathVariable Long id) {
 
 		Genero genero = service.findById(id);
-		return (genero != null) ? ResponseEntity.ok(generoMapper.toDto(genero)) : ResponseEntity.notFound().build();
+		return (genero != null)
+				? ResponseEntity.ok(generoMapper.toDto(genero))
+				: ResponseEntity.notFound().build();
 	}
 
 	// UPDATE - Solo ADMIN
-	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	@PreAuthorize("hasAuthority(@roles.ADMIN())")
 	@PutMapping("/{id}")
-	public ResponseEntity<GeneroDTO> actualizar(@PathVariable Long id, @RequestBody GeneroDTO generoDto) {
+	public ResponseEntity<GeneroDTO> actualizar(@PathVariable Long id,
+			@RequestBody GeneroDTO generoDto) {
 
 		Genero existente = service.findById(id);
 		if (existente == null) {
@@ -67,7 +70,7 @@ public class GeneroController {
 	}
 
 	// DELETE - Solo ADMIN
-	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	@PreAuthorize("hasAuthority(@roles.ADMIN())")
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> eliminar(@PathVariable Long id) {
 

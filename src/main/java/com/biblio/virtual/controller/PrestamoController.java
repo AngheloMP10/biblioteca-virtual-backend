@@ -24,12 +24,11 @@ public class PrestamoController {
 		this.prestamoMapper = prestamoMapper;
 	}
 
-	// Solicitud de préstamo accesible a USER y ADMIN
-	@PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_USER')")
+	// SOLICITAR PRÉSTAMO: USER o ADMIN
+	@PreAuthorize("hasAnyAuthority(@roles.USER(), @roles.ADMIN())")
 	@PostMapping("/solicitar/{libroId}")
 	public ResponseEntity<?> solicitarPrestamo(@PathVariable Long libroId) {
 
-		// Obtenemos usuario autenticado desde el contexto de seguridad
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String username = auth.getName();
 
@@ -37,15 +36,15 @@ public class PrestamoController {
 		return ResponseEntity.ok("Solicitud de préstamo enviada con éxito");
 	}
 
-	// Listado completo de préstamos, solo para ADMIN
-	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	// LISTAR TODOS
+	@PreAuthorize("hasAnyAuthority(@roles.BIBLIOTECARIO(), @roles.ADMIN())")
 	@GetMapping("/todos")
 	public ResponseEntity<List<PrestamoDTO>> listarTodos() {
 		return ResponseEntity.ok(prestamoMapper.toDtoList(prestamoService.findAll()));
 	}
 
-	// Listado de préstamos del usuario actual
-	@PreAuthorize("hasAuthority('ROLE_USER')")
+	// MIS PRÉSTAMOS
+	@PreAuthorize("hasAnyAuthority(@roles.USER(), @roles.BIBLIOTECARIO(), @roles.ADMIN())")
 	@GetMapping("/mios")
 	public ResponseEntity<List<PrestamoDTO>> misPrestamos() {
 
@@ -55,26 +54,29 @@ public class PrestamoController {
 		return ResponseEntity.ok(prestamoMapper.toDtoList(prestamoService.findByUsername(username)));
 	}
 
-	// Aprobación de préstamo, operación crítica restringida a ADMIN
-	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	// APROBAR: ADMIN o BIBLIOTECARIO
+	@PreAuthorize("hasAnyAuthority(@roles.ADMIN(), @roles.BIBLIOTECARIO())")
 	@PostMapping("/aprobar/{id}")
 	public ResponseEntity<?> aprobarPrestamo(@PathVariable Long id) {
+
 		prestamoService.aprobarPrestamo(id);
-		return ResponseEntity.ok("Préstamo aprobado y libro entregado.");
+		return ResponseEntity.ok("Préstamo aprobado.");
 	}
 
-	// Rechazo de préstamo, solo ADMIN puede realizar
-	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	// RECHAZAR: ADMIN o BIBLIOTECARIO
+	@PreAuthorize("hasAnyAuthority(@roles.ADMIN(), @roles.BIBLIOTECARIO())")
 	@PostMapping("/rechazar/{id}")
 	public ResponseEntity<?> rechazarPrestamo(@PathVariable Long id) {
+
 		prestamoService.rechazarPrestamo(id);
 		return ResponseEntity.ok("Solicitud rechazada.");
 	}
 
-	// Finalizar / devolver préstamo (solo ADMIN)
-	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	// FINALIZAR / DEVOLVER: ADMIN o BIBLIOTECARIO
+	@PreAuthorize("hasAnyAuthority(@roles.ADMIN(), @roles.BIBLIOTECARIO())")
 	@PostMapping("/finalizar/{id}")
 	public ResponseEntity<?> finalizarPrestamo(@PathVariable Long id) {
+
 		prestamoService.finalizarPrestamo(id);
 		return ResponseEntity.ok("Libro devuelto correctamente.");
 	}

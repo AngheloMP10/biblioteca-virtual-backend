@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDate;
 
+import com.biblio.virtual.model.enums.EstadoPrestamo;
+
 @Entity
 @Table(name = "prestamos")
 public class Prestamo implements Serializable {
@@ -17,19 +19,24 @@ public class Prestamo implements Serializable {
 	@Column(name = "fecha_solicitud", nullable = false)
 	private LocalDate fechaSolicitud;
 
+	@Column(name = "fecha_recojo")
+	private LocalDate fechaRecojo;
+
 	@Column(name = "fecha_devolucion")
 	private LocalDate fechaDevolucion;
 
+	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
-	private String estado;
+	private EstadoPrestamo estado;
 
-	// Relación con Usuario, EAGER por simplicidad y estabilidad inicial.
+	@Column(name = "qr_code", unique = true)
+	private String qrCode;
+
+	// Relaciones
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "usuario_id", nullable = false)
 	private Usuario usuario;
 
-	// Relación con Libro, EAGER para poder mapear a DTO sin
-	// LazyInitializationException.
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "libro_id", nullable = false)
 	private Libro libro;
@@ -55,6 +62,14 @@ public class Prestamo implements Serializable {
 		this.fechaSolicitud = fechaSolicitud;
 	}
 
+	public LocalDate getFechaRecojo() {
+		return fechaRecojo;
+	}
+
+	public void setFechaRecojo(LocalDate fechaRecojo) {
+		this.fechaRecojo = fechaRecojo;
+	}
+
 	public LocalDate getFechaDevolucion() {
 		return fechaDevolucion;
 	}
@@ -63,12 +78,20 @@ public class Prestamo implements Serializable {
 		this.fechaDevolucion = fechaDevolucion;
 	}
 
-	public String getEstado() {
+	public EstadoPrestamo getEstado() {
 		return estado;
 	}
 
-	public void setEstado(String estado) {
+	public void setEstado(EstadoPrestamo estado) {
 		this.estado = estado;
+	}
+
+	public String getQrCode() {
+		return qrCode;
+	}
+
+	public void setQrCode(String qrCode) {
+		this.qrCode = qrCode;
 	}
 
 	public Usuario getUsuario() {

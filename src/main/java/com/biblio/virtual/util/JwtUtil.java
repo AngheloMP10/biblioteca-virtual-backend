@@ -17,18 +17,15 @@ public class JwtUtil {
 	private String secret;
 
 	@Value("${jwt.expiration}")
-	private Long expiration; // en milisegundos
+	private Long expiration;
 
 	private SecretKey getSigningKey() {
 		// Clave secreta para firmar/verificar el token
 		return Keys.hmacShaKeyFor(secret.getBytes());
 	}
 
-	// Generar token con username y rol (formato ROLE_)
+	// Generar token con username y rol
 	public String generateToken(String username, String role) {
-		if (role != null && !role.startsWith("ROLE_")) {
-			role = "ROLE_" + role;
-		}
 
 		return Jwts.builder()
 				.setIssuer("biblioteca-virtual")
@@ -45,28 +42,21 @@ public class JwtUtil {
 		return extractAllClaims(token).getSubject();
 	}
 
-	// Extraer rol del token y asegurar formato ROLE_
 	public String extractRole(String token) {
-		String role = extractAllClaims(token).get("role", String.class);
-		if (role != null && !role.startsWith("ROLE_")) {
-			role = "ROLE_" + role;
-		}
-		return role;
+		return extractAllClaims(token).get("role", String.class);
 	}
 
-	// Obtener fecha de expiración
-	public Date extractExpiration(String token) {
-		return extractAllClaims(token).getExpiration();
-	}
-
-	// Validar token (usuario correcto y no expirado)
 	public Boolean validateToken(String token, String username) {
 		final String extractedUsername = extractUsername(token);
-		return (extractedUsername.equals(username) && !isTokenExpired(token));
+		return extractedUsername.equals(username) && !isTokenExpired(token);
 	}
 
 	private Boolean isTokenExpired(String token) {
 		return extractExpiration(token).before(new Date());
+	}
+
+	public Date extractExpiration(String token) {
+		return extractAllClaims(token).getExpiration();
 	}
 
 	private Claims extractAllClaims(String token) {

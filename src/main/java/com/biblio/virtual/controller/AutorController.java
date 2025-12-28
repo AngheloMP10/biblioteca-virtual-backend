@@ -24,13 +24,12 @@ public class AutorController {
 	}
 
 	// CREATE
-	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	@PreAuthorize("hasAuthority(@roles.ADMIN())")
 	@PostMapping
 	public ResponseEntity<AutorDTO> guardar(@RequestBody AutorDTO autorDto) {
 
 		Autor autor = autorMapper.toEntity(autorDto);
 
-		// Seguridad defensiva
 		if (autor.getLibros() == null) {
 			autor.setLibros(new java.util.ArrayList<>());
 		}
@@ -40,24 +39,27 @@ public class AutorController {
 	}
 
 	// READ - por ID
-	@PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_USER')")
+	@PreAuthorize("hasAnyAuthority(@roles.ADMIN(), @roles.USER())")
 	@GetMapping("/{id}")
 	public ResponseEntity<AutorDTO> buscarPorId(@PathVariable Long id) {
 		Autor autor = service.findById(id);
-		return (autor != null) ? ResponseEntity.ok(autorMapper.toDto(autor)) : ResponseEntity.notFound().build();
+		return (autor != null)
+				? ResponseEntity.ok(autorMapper.toDto(autor))
+				: ResponseEntity.notFound().build();
 	}
 
 	// READ - listar
-	@PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_USER')")
+	@PreAuthorize("hasAnyAuthority(@roles.ADMIN(), @roles.USER())")
 	@GetMapping
 	public ResponseEntity<List<AutorDTO>> listar() {
 		return ResponseEntity.ok(autorMapper.toDtoList(service.findAll()));
 	}
 
 	// UPDATE
-	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	@PreAuthorize("hasAuthority(@roles.ADMIN())")
 	@PutMapping("/{id}")
-	public ResponseEntity<AutorDTO> actualizar(@PathVariable Long id, @RequestBody AutorDTO autorDto) {
+	public ResponseEntity<AutorDTO> actualizar(@PathVariable Long id,
+			@RequestBody AutorDTO autorDto) {
 
 		Autor existente = service.findById(id);
 		if (existente == null) {
@@ -72,7 +74,7 @@ public class AutorController {
 	}
 
 	// DELETE
-	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	@PreAuthorize("hasAuthority(@roles.ADMIN())")
 	@DeleteMapping("/{id}")
 	public ResponseEntity<String> eliminar(@PathVariable Long id) {
 

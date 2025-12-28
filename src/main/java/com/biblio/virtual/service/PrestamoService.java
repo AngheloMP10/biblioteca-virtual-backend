@@ -13,6 +13,8 @@ import com.biblio.virtual.repository.ILibroRepository;
 import com.biblio.virtual.repository.IPrestamoRepository;
 import com.biblio.virtual.repository.UsuarioRepository;
 
+import com.biblio.virtual.model.enums.EstadoPrestamo;
+
 @Service
 public class PrestamoService implements IPrestamoService {
 
@@ -30,22 +32,37 @@ public class PrestamoService implements IPrestamoService {
 	@Override
 	@Transactional
 	public Prestamo solicitarPrestamo(Long libroId, String username) {
+
+		// Máximo 3 préstamos activos
+		long prestamosActivos = prestamoRepo.countByUsuarioUsernameAndEstadoNotIn(
+				username,
+				List.of(
+						EstadoPrestamo.FINALIZADO,
+						EstadoPrestamo.RECHAZADO));
+
+		if (prestamosActivos >= 3) {
+			throw new RuntimeException(
+					"Has alcanzado el límite de 3 libros prestados o solicitados simultáneamente");
+		}
+
 		// Buscar usuario y libro
 		Usuario usuario = usuarioRepo.findByUsername(username)
 				.orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-		Libro libro = libroRepo.findById(libroId).orElseThrow(() -> new RuntimeException("Libro no encontrado"));
 
-		// Validar disponibilidad del libro
+		Libro libro = libroRepo.findById(libroId)
+				.orElseThrow(() -> new RuntimeException("Libro no encontrado"));
+
+		// Validar disponibilidad
 		if (libro.getStock() <= 0) {
 			throw new RuntimeException("El libro no está disponible");
 		}
 
-		// Crear solicitud de préstamo pendiente
+		// Crear préstamo
 		Prestamo prestamo = new Prestamo();
 		prestamo.setUsuario(usuario);
 		prestamo.setLibro(libro);
 		prestamo.setFechaSolicitud(LocalDate.now());
-		prestamo.setEstado("PENDIENTE");
+		prestamo.setEstado(EstadoPrestamo.PENDIENTE);
 
 		return prestamoRepo.save(prestamo);
 	}
@@ -62,7 +79,7 @@ public class PrestamoService implements IPrestamoService {
 			throw new RuntimeException("No hay stock disponible para este libro");
 		}
 
-		prestamo.setEstado("APROBADO");
+		prestamo.setEstado(EstadoPrestamo.APROBADO);
 		prestamo.setFechaDevolucion(LocalDate.now().plusDays(7));
 
 		libro.setStock(libro.getStock() - 1);
@@ -76,7 +93,7 @@ public class PrestamoService implements IPrestamoService {
 	public void rechazarPrestamo(Long id) {
 		// Cambiar estado a RECHAZADO
 		Prestamo prestamo = prestamoRepo.findById(id).orElseThrow(() -> new RuntimeException("Préstamo no encontrado"));
-		prestamo.setEstado("RECHAZADO");
+		prestamo.setEstado(EstadoPrestamo.RECHAZADO);
 		prestamoRepo.save(prestamo);
 	}
 
@@ -86,12 +103,12 @@ public class PrestamoService implements IPrestamoService {
 
 		Prestamo prestamo = prestamoRepo.findById(id).orElseThrow(() -> new RuntimeException("Préstamo no encontrado"));
 
-		if (!"APROBADO".equals(prestamo.getEstado())) {
+		if (prestamo.getEstado() != EstadoPrestamo.APROBADO) {
 			throw new RuntimeException("Solo se pueden finalizar préstamos aprobados");
 		}
 
 		// Cambiar estado
-		prestamo.setEstado("FINALIZADO");
+		prestamo.setEstado(EstadoPrestamo.FINALIZADO);
 		prestamo.setFechaDevolucion(LocalDate.now());
 
 		// Recuperar stock

@@ -1,7 +1,5 @@
 package com.biblio.virtual.controller;
 
-import java.util.List;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -28,8 +26,8 @@ public class LibrosController {
 		this.libroMapper = libroMapper;
 	}
 
-	// CREATE
-	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	// CREATE: ADMIN o BIBLIOTECARIO
+	@PreAuthorize("hasAnyAuthority(@roles.ADMIN(), @roles.BIBLIOTECARIO())")
 	@PostMapping
 	public ResponseEntity<LibroDTO> guardar(@RequestBody LibroDTO libroDto) {
 
@@ -41,50 +39,40 @@ public class LibrosController {
 		}
 
 		Libro guardado = libroService.save(libro);
-
 		return ResponseEntity.ok(libroMapper.toDto(guardado));
 	}
 
-	// READ - Listar con Paginación y Búsqueda
-	@PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_USER')")
+	// READ - Listar
+	@PreAuthorize("hasAnyAuthority(@roles.ADMIN(), @roles.BIBLIOTECARIO(), @roles.USER())")
 	@GetMapping
 	public ResponseEntity<Page<LibroDTO>> listar(@RequestParam(defaultValue = "0") int page,
 			@RequestParam(defaultValue = "6") int size, @RequestParam(defaultValue = "id") String order,
 			@RequestParam(defaultValue = "true") boolean asc, @RequestParam(required = false) String keyword) {
-		// Ordenamiento
+
 		Sort sort = asc ? Sort.by(order).ascending() : Sort.by(order).descending();
 		Pageable pageable = PageRequest.of(page, size, sort);
 
-		Page<Libro> librosPage;
+		Page<Libro> librosPage = (keyword != null && !keyword.trim().isEmpty())
+				? libroService.buscarPorTitulo(keyword, pageable)
+				: libroService.findAll(pageable);
 
-		if (keyword != null && !keyword.trim().isEmpty()) {
-			librosPage = libroService.buscarPorTitulo(keyword, pageable);
-		} else {
-			librosPage = libroService.findAll(pageable);
-		}
-
-		Page<LibroDTO> dtoPage = librosPage.map(libroMapper::toDto);
-		return ResponseEntity.ok(dtoPage);
+		return ResponseEntity.ok(librosPage.map(libroMapper::toDto));
 	}
 
-	// READ - Buscar por ID
-	@PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_USER')")
+	// READ - por ID
+	@PreAuthorize("hasAnyAuthority(@roles.ADMIN(), @roles.BIBLIOTECARIO(), @roles.USER())")
 	@GetMapping("/{id}")
 	public ResponseEntity<LibroDTO> buscarPorId(@PathVariable Long id) {
 		Libro libro = libroService.findById(id);
-		if (libro != null) {
-			return ResponseEntity.ok(libroMapper.toDto(libro));
-		}
-		return ResponseEntity.notFound().build();
+		return (libro != null) ? ResponseEntity.ok(libroMapper.toDto(libro)) : ResponseEntity.notFound().build();
 	}
 
-	// UPDATE
-	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	// UPDATE: ADMIN o BIBLIOTECARIO
+	@PreAuthorize("hasAnyAuthority(@roles.ADMIN(), @roles.BIBLIOTECARIO())")
 	@PutMapping("/{id}")
 	public ResponseEntity<LibroDTO> actualizar(@PathVariable Long id, @RequestBody LibroDTO libroDto) {
 
 		Libro existente = libroService.findById(id);
-
 		if (existente == null) {
 			return ResponseEntity.notFound().build();
 		}
@@ -103,19 +91,20 @@ public class LibrosController {
 		}
 
 		Libro actualizado = libroService.save(existente);
-
 		return ResponseEntity.ok(libroMapper.toDto(actualizado));
 	}
 
-	// DELETE
-	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	// DELETE: SOLO ADMIN
+	@PreAuthorize("hasAuthority(@roles.ADMIN())")
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+
 		Libro existente = libroService.findById(id);
-		if (existente != null) {
-			libroService.delete(id);
-			return ResponseEntity.noContent().build();
+		if (existente == null) {
+			return ResponseEntity.notFound().build();
 		}
-		return ResponseEntity.notFound().build();
+
+		libroService.delete(id);
+		return ResponseEntity.noContent().build();
 	}
 }
