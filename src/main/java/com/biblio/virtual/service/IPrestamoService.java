@@ -17,6 +17,8 @@ public interface IPrestamoService {
 	void aprobarPrestamo(Long id);
 
 	void rechazarPrestamo(Long id);
+	
+	void entregarPrestamo(Long id);
 
 	void finalizarPrestamo(Long id);
 }

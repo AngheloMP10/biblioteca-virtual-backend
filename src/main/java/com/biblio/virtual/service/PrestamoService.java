@@ -34,23 +34,18 @@ public class PrestamoService implements IPrestamoService {
 	public Prestamo solicitarPrestamo(Long libroId, String username) {
 
 		// Máximo 3 préstamos activos
-		long prestamosActivos = prestamoRepo.countByUsuarioUsernameAndEstadoNotIn(
-				username,
-				List.of(
-						EstadoPrestamo.FINALIZADO,
-						EstadoPrestamo.RECHAZADO));
+		long prestamosActivos = prestamoRepo.countByUsuarioUsernameAndEstadoNotIn(username,
+				List.of(EstadoPrestamo.FINALIZADO, EstadoPrestamo.RECHAZADO));
 
 		if (prestamosActivos >= 3) {
-			throw new RuntimeException(
-					"Has alcanzado el límite de 3 libros prestados o solicitados simultáneamente");
+			throw new RuntimeException("Has alcanzado el límite de 3 libros prestados o solicitados simultáneamente");
 		}
 
 		// Buscar usuario y libro
 		Usuario usuario = usuarioRepo.findByUsername(username)
 				.orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-		Libro libro = libroRepo.findById(libroId)
-				.orElseThrow(() -> new RuntimeException("Libro no encontrado"));
+		Libro libro = libroRepo.findById(libroId).orElseThrow(() -> new RuntimeException("Libro no encontrado"));
 
 		// Validar disponibilidad
 		if (libro.getStock() <= 0) {
@@ -80,7 +75,6 @@ public class PrestamoService implements IPrestamoService {
 		}
 
 		prestamo.setEstado(EstadoPrestamo.APROBADO);
-		prestamo.setFechaDevolucion(LocalDate.now().plusDays(7));
 
 		libro.setStock(libro.getStock() - 1);
 
@@ -99,12 +93,29 @@ public class PrestamoService implements IPrestamoService {
 
 	@Override
 	@Transactional
+	public void entregarPrestamo(Long id) {
+		Prestamo prestamo = prestamoRepo.findById(id).orElseThrow(() -> new RuntimeException("Préstamo no encontrado"));
+
+		// Validación estricta
+		if (prestamo.getEstado() != EstadoPrestamo.APROBADO) {
+			throw new IllegalStateException("Solo se pueden entregar préstamos en estado APROBADO");
+		}
+
+		prestamo.setEstado(EstadoPrestamo.EN_PRESTAMO);
+
+		prestamo.setFechaDevolucion(LocalDate.now().plusDays(7));
+
+		prestamoRepo.save(prestamo);
+	}
+
+	@Override
+	@Transactional
 	public void finalizarPrestamo(Long id) {
 
 		Prestamo prestamo = prestamoRepo.findById(id).orElseThrow(() -> new RuntimeException("Préstamo no encontrado"));
 
-		if (prestamo.getEstado() != EstadoPrestamo.APROBADO) {
-			throw new RuntimeException("Solo se pueden finalizar préstamos aprobados");
+		if (prestamo.getEstado() != EstadoPrestamo.EN_PRESTAMO) {
+			throw new RuntimeException("Solo se pueden finalizar préstamos que estén EN_PRESTAMO");
 		}
 
 		// Cambiar estado

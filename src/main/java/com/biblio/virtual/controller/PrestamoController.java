@@ -63,6 +63,15 @@ public class PrestamoController {
 		return ResponseEntity.ok("Préstamo aprobado.");
 	}
 
+	// ENTREGAR / RETIRO PRESENCIAL (QR)
+	@PreAuthorize("hasAnyAuthority(@roles.ADMIN(), @roles.BIBLIOTECARIO())")
+	@PostMapping("/entregar/{id}")
+	public ResponseEntity<?> entregarPrestamo(@PathVariable Long id) {
+
+		prestamoService.entregarPrestamo(id);
+		return ResponseEntity.ok("Libro entregado al usuario. Préstamo activo.");
+	}
+
 	// RECHAZAR: ADMIN o BIBLIOTECARIO
 	@PreAuthorize("hasAnyAuthority(@roles.ADMIN(), @roles.BIBLIOTECARIO())")
 	@PostMapping("/rechazar/{id}")
