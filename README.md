@@ -1,10 +1,10 @@
-# 📚 Biblioteca Virtual Backend — Sistema Web con Docker y CI/CD
+# Biblioteca Virtual Backend — Sistema Web con Docker y CI/CD
 
 Sistema web de gestión de biblioteca desarrollado con arquitectura moderna, contenedores y automatización CI/CD.
 
 ---
 
-## 👨‍💻 Autor
+## Autor
 
 Anghelo M. P.  
 Estudiante de Ingeniería de Software  
@@ -12,7 +12,7 @@ Universidad Tecnológica del Perú
 
 ---
 
-## 🚀 Tecnologías usadas
+## Tecnologías usadas
 
 ### Backend
 
@@ -37,7 +37,7 @@ Universidad Tecnológica del Perú
 
 ---
 
-## 🧱 Arquitectura
+## Arquitectura
 
 - Frontend Angular desplegado en Nginx
 - Backend Spring Boot con API REST
@@ -47,7 +47,7 @@ Universidad Tecnológica del Perú
 
 ---
 
-## ✅ Requisitos
+## Requisitos
 
 - Docker
 - Docker Compose
@@ -56,7 +56,7 @@ Universidad Tecnológica del Perú
 
 ---
 
-## ▶️ Ejecución del proyecto
+## Ejecución del proyecto
 
 Clonar el repositorio:
 
