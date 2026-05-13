@@ -30,7 +30,7 @@ public class BibliotecaVirtualApplication {
 			if (usuarioRepository.findByUsername("admin").isEmpty()) {
 				Usuario admin = new Usuario();
 				admin.setUsername("admin");
-				admin.setPassword(passwordEncoder.encode("admin123"));
+				admin.setPassword(passwordEncoder.encode("Admin123@"));
 				admin.setRole(Roles.ADMIN);
 				usuarioRepository.save(admin);
 				System.out.println("Usuario ADMIN creado: admin / admin123");
@@ -39,7 +39,7 @@ public class BibliotecaVirtualApplication {
 			if (usuarioRepository.findByUsername("bibliotecario").isEmpty()) {
 				Usuario bibliotecario = new Usuario();
 				bibliotecario.setUsername("bibliotecario");
-				bibliotecario.setPassword(passwordEncoder.encode("bibliotecario123"));
+				bibliotecario.setPassword(passwordEncoder.encode("Bibliotecario123@"));
 				bibliotecario.setRole(Roles.BIBLIOTECARIO);
 				usuarioRepository.save(bibliotecario);
 				System.out.println("Usuario BIBLIOTECARIO creado: bibliotecario / bibliotecario123");
@@ -48,7 +48,7 @@ public class BibliotecaVirtualApplication {
 			if (usuarioRepository.findByUsername("user").isEmpty()) {
 				Usuario user = new Usuario();
 				user.setUsername("user");
-				user.setPassword(passwordEncoder.encode("user123"));
+				user.setPassword(passwordEncoder.encode("User123@"));
 				user.setRole(Roles.USER);
 				usuarioRepository.save(user);
 				System.out.println("Usuario USER creado: user / user123");

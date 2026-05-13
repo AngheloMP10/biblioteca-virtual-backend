@@ -19,9 +19,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.biblio.virtual.dto.AuthRequest;
 import com.biblio.virtual.dto.AuthResponse;
+import com.biblio.virtual.dto.RegisterRequest;
 import com.biblio.virtual.model.Usuario;
 import com.biblio.virtual.repository.UsuarioRepository;
 import com.biblio.virtual.util.JwtUtil;
+
+import jakarta.validation.Valid;
 
 import com.biblio.virtual.security.Roles;
 
@@ -72,19 +75,17 @@ public class AuthController {
 	}
 
 	@PostMapping("/register")
-	public ResponseEntity<?> register(@RequestBody AuthRequest authRequest) {
+	public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
 
-		if (usuarioRepository.findByUsername(authRequest.getUsername()).isPresent()) {
+		if (usuarioRepository.findByUsername(request.getUsername()).isPresent()) {
 			return ResponseEntity.badRequest().body("El usuario ya existe");
 		}
 
-		/*
-		 * La contraseña se persiste cifrada y el rol se asigna explícitamente por
-		 * seguridad.
-		 */
 		Usuario usuario = new Usuario();
-		usuario.setUsername(authRequest.getUsername());
-		usuario.setPassword(passwordEncoder.encode(authRequest.getPassword()));
+		usuario.setUsername(request.getUsername());
+		usuario.setPassword(passwordEncoder.encode(request.getPassword()));
+		usuario.setEmail(request.getEmail());
+		usuario.setCelular(request.getCelular());
 		usuario.setRole(Roles.USER);
 
 		usuarioRepository.save(usuario);

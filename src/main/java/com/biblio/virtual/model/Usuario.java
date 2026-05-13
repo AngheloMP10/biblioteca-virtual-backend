@@ -20,6 +20,12 @@ public class Usuario {
 	@Column(nullable = false)
 	private String password;
 
+	@Column(unique = true)
+	private String email;
+
+	@Column(length = 20)
+	private String celular;
+
 	// String para mantener compatibilidad con Spring Security
 	@Column(nullable = false)
 	private String role;
@@ -31,10 +37,12 @@ public class Usuario {
 	public Usuario() {
 	}
 
-	public Usuario(String username, String password, String role) {
+	public Usuario(String username, String password, String role, String email, String celular) {
 		this.username = username;
 		this.password = password;
 		this.role = role;
+		this.email = email;
+		this.celular = celular;
 	}
 
 	// Getters y Setters
@@ -60,6 +68,22 @@ public class Usuario {
 
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public String getCelular() {
+		return celular;
+	}
+
+	public void setCelular(String celular) {
+		this.celular = celular;
 	}
 
 	public String getRole() {
