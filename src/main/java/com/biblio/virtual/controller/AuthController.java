@@ -21,7 +21,7 @@ import com.biblio.virtual.dto.AuthRequest;
 import com.biblio.virtual.dto.AuthResponse;
 import com.biblio.virtual.dto.RegisterRequest;
 import com.biblio.virtual.model.Usuario;
-import com.biblio.virtual.repository.UsuarioRepository;
+import com.biblio.virtual.repository.IUsuarioRepository;
 import com.biblio.virtual.util.JwtUtil;
 
 import jakarta.validation.Valid;
@@ -39,7 +39,7 @@ public class AuthController {
 	private JwtUtil jwtUtil;
 
 	@Autowired
-	private UsuarioRepository usuarioRepository;
+	private IUsuarioRepository usuarioRepository;
 
 	@Autowired
 	private PasswordEncoder passwordEncoder;

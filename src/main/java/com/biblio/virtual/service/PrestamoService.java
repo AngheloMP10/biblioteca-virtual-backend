@@ -11,7 +11,7 @@ import com.biblio.virtual.model.Prestamo;
 import com.biblio.virtual.model.Usuario;
 import com.biblio.virtual.repository.ILibroRepository;
 import com.biblio.virtual.repository.IPrestamoRepository;
-import com.biblio.virtual.repository.UsuarioRepository;
+import com.biblio.virtual.repository.IUsuarioRepository;
 
 import com.biblio.virtual.model.enums.EstadoPrestamo;
 
@@ -19,10 +19,10 @@ import com.biblio.virtual.model.enums.EstadoPrestamo;
 public class PrestamoService implements IPrestamoService {
 
 	private final IPrestamoRepository prestamoRepo;
-	private final UsuarioRepository usuarioRepo;
+	private final IUsuarioRepository usuarioRepo;
 	private final ILibroRepository libroRepo;
 
-	public PrestamoService(IPrestamoRepository prestamoRepo, UsuarioRepository usuarioRepo,
+	public PrestamoService(IPrestamoRepository prestamoRepo, IUsuarioRepository usuarioRepo,
 			ILibroRepository libroRepo) {
 		this.prestamoRepo = prestamoRepo;
 		this.usuarioRepo = usuarioRepo;

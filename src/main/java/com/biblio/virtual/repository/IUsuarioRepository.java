@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import com.biblio.virtual.model.Usuario;
 
 @Repository
-public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
+public interface IUsuarioRepository extends JpaRepository<Usuario, Long> {
 
 	Optional<Usuario> findByUsername(String username);
 }

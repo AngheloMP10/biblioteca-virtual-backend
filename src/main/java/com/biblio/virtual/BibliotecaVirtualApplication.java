@@ -1,7 +1,7 @@
 package com.biblio.virtual;
 
 import com.biblio.virtual.model.Usuario;
-import com.biblio.virtual.repository.UsuarioRepository;
+import com.biblio.virtual.repository.IUsuarioRepository;
 import com.biblio.virtual.security.Roles;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -14,7 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class BibliotecaVirtualApplication {
 
 	@Autowired
-	private UsuarioRepository usuarioRepository;
+	private IUsuarioRepository usuarioRepository;
 
 	@Autowired
 	private PasswordEncoder passwordEncoder;

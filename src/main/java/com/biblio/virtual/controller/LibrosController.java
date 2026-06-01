@@ -46,7 +46,7 @@ public class LibrosController {
 	@PreAuthorize("hasAnyAuthority(@roles.ADMIN(), @roles.BIBLIOTECARIO(), @roles.USER())")
 	@GetMapping
 	public ResponseEntity<Page<LibroDTO>> listar(@RequestParam(defaultValue = "0") int page,
-			@RequestParam(defaultValue = "6") int size, @RequestParam(defaultValue = "id") String order,
+			@RequestParam(defaultValue = "8") int size, @RequestParam(defaultValue = "id") String order,
 			@RequestParam(defaultValue = "true") boolean asc, @RequestParam(required = false) String keyword) {
 
 		Sort sort = asc ? Sort.by(order).ascending() : Sort.by(order).descending();
