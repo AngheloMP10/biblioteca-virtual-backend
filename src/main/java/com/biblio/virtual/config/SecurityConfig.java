@@ -43,6 +43,7 @@ public class SecurityConfig {
 						.requestMatchers("/auth/login", "/auth/register").permitAll()
 						.requestMatchers("/auth/me").authenticated()
 						.requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+						.requestMatchers("/ws/**").permitAll() // WebSocket STOMP + SockJS
 						.anyRequest().authenticated())
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.addFilterBefore(

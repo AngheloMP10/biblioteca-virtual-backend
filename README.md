@@ -89,7 +89,8 @@ biblioteca-virtual-backend
 │  │  │           ├─ controller
 │  │  │           │  ├─ AuthController.java
 │  │  │           │  ├─ AutorController.java
-│  │  │           │  ├─ GeneroController.java   
+│  │  │           │  ├─ DashboardController.java
+│  │  │           │  ├─ GeneroController.java
 │  │  │           │  ├─ LibrosController.java
 │  │  │           │  ├─ MediaController.java
 │  │  │           │  └─ PrestamoController.java
@@ -97,6 +98,10 @@ biblioteca-virtual-backend
 │  │  │           │  ├─ AuthRequest.java
 │  │  │           │  ├─ AuthResponse.java
 │  │  │           │  ├─ AutorDTO.java
+│  │  │           │  ├─ DashboardGeneroDTO.java
+│  │  │           │  ├─ DashboardLibroDTO.java
+│  │  │           │  ├─ DashboardMetricasDTO.java
+│  │  │           │  ├─ DashboardResponseDTO.java
 │  │  │           │  ├─ GeneroDTO.java
 │  │  │           │  ├─ LibroDTO.java
 │  │  │           │  ├─ PrestamoDTO.java
@@ -123,7 +128,7 @@ biblioteca-virtual-backend
 │  │  │           │  ├─ IGeneroRepository.java
 │  │  │           │  ├─ ILibroRepository.java
 │  │  │           │  ├─ IPrestamoRepository.java
-│  │  │           │  └─ UsuarioRepository.java
+│  │  │           │  └─ IUsuarioRepository.java
 │  │  │           ├─ security
 │  │  │           │  ├─ RoleExpressions.java
 │  │  │           │  └─ Roles.java
@@ -131,8 +136,10 @@ biblioteca-virtual-backend
 │  │  │           │  ├─ AutorService.java
 │  │  │           │  ├─ CloudinaryService.java
 │  │  │           │  ├─ CustomUserDetailsService.java
+│  │  │           │  ├─ DashboardService.java
 │  │  │           │  ├─ GeneroService.java
 │  │  │           │  ├─ IAutorService.java
+│  │  │           │  ├─ IDashboardService.java
 │  │  │           │  ├─ IGeneroService.java
 │  │  │           │  ├─ ILibroService.java
 │  │  │           │  ├─ IPrestamoService.java

@@ -1,11 +1,13 @@
 package com.biblio.virtual.service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.biblio.virtual.dto.NotificacionDTO;
 import com.biblio.virtual.model.Libro;
 import com.biblio.virtual.model.Prestamo;
 import com.biblio.virtual.model.Usuario;
@@ -21,12 +23,14 @@ public class PrestamoService implements IPrestamoService {
 	private final IPrestamoRepository prestamoRepo;
 	private final IUsuarioRepository usuarioRepo;
 	private final ILibroRepository libroRepo;
+	private final NotificacionService notificacionService;
 
 	public PrestamoService(IPrestamoRepository prestamoRepo, IUsuarioRepository usuarioRepo,
-			ILibroRepository libroRepo) {
+			ILibroRepository libroRepo, NotificacionService notificacionService) {
 		this.prestamoRepo = prestamoRepo;
 		this.usuarioRepo = usuarioRepo;
 		this.libroRepo = libroRepo;
+		this.notificacionService = notificacionService;
 	}
 
 	@Override
@@ -59,7 +63,17 @@ public class PrestamoService implements IPrestamoService {
 		prestamo.setFechaSolicitud(LocalDate.now());
 		prestamo.setEstado(EstadoPrestamo.PENDIENTE);
 
-		return prestamoRepo.save(prestamo);
+		Prestamo prestamoGuardado = prestamoRepo.save(prestamo);
+
+		// Enviar notificación
+		notificacionService.enviarNotificacion(new NotificacionDTO(
+			"PRESTAMO_CREADO",
+			"Se ha registrado un nuevo préstamo",
+			prestamoGuardado.getId(),
+			LocalDateTime.now()
+		));
+
+		return prestamoGuardado;
 	}
 
 	@Override
@@ -80,6 +94,14 @@ public class PrestamoService implements IPrestamoService {
 
 		libroRepo.save(libro);
 		prestamoRepo.save(prestamo);
+
+		// Enviar notificación
+		notificacionService.enviarNotificacion(new NotificacionDTO(
+			"PRESTAMO_APROBADO",
+			"El préstamo ha sido aprobado",
+			prestamo.getId(),
+			LocalDateTime.now()
+		));
 	}
 
 	@Override
@@ -89,6 +111,14 @@ public class PrestamoService implements IPrestamoService {
 		Prestamo prestamo = prestamoRepo.findById(id).orElseThrow(() -> new RuntimeException("Préstamo no encontrado"));
 		prestamo.setEstado(EstadoPrestamo.RECHAZADO);
 		prestamoRepo.save(prestamo);
+
+		// Enviar notificación
+		notificacionService.enviarNotificacion(new NotificacionDTO(
+			"PRESTAMO_RECHAZADO",
+			"El préstamo ha sido rechazado",
+			prestamo.getId(),
+			LocalDateTime.now()
+		));
 	}
 
 	@Override
@@ -128,6 +158,14 @@ public class PrestamoService implements IPrestamoService {
 
 		libroRepo.save(libro);
 		prestamoRepo.save(prestamo);
+
+		// Enviar notificación
+		notificacionService.enviarNotificacion(new NotificacionDTO(
+			"PRESTAMO_DEVUELTO",
+			"Un libro ha sido devuelto",
+			prestamo.getId(),
+			LocalDateTime.now()
+		));
 	}
 
 	@Override
