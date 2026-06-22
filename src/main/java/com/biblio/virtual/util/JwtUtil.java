@@ -67,4 +67,17 @@ public class JwtUtil {
 				.parseClaimsJws(token)
 				.getBody();
 	}
+
+	// Token temporal para 2FA (muy corto y sin rol)
+	public String generateTempToken(String username) {
+
+		return Jwts.builder()
+				.setIssuer("biblioteca-virtual")
+				.setSubject(username)
+				.claim("type", "2FA_TEMP")
+				.setIssuedAt(new Date())
+				.setExpiration(new Date(System.currentTimeMillis() + 5 * 60 * 1000)) // 5 min
+				.signWith(getSigningKey(), SignatureAlgorithm.HS256)
+				.compact();
+	}
 }

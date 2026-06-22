@@ -20,8 +20,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.biblio.virtual.dto.AuthRequest;
 import com.biblio.virtual.dto.AuthResponse;
 import com.biblio.virtual.dto.RegisterRequest;
+import com.biblio.virtual.dto.TwoFactorRequest;
+import com.biblio.virtual.dto.TwoFactorResponse;
 import com.biblio.virtual.model.Usuario;
 import com.biblio.virtual.repository.IUsuarioRepository;
+import com.biblio.virtual.service.TwoFactorAuthService;
 import com.biblio.virtual.util.JwtUtil;
 
 import jakarta.validation.Valid;
@@ -44,6 +47,9 @@ public class AuthController {
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 
+	@Autowired
+	private TwoFactorAuthService twoFactorAuthService;
+
 	@PostMapping("/login")
 	public ResponseEntity<?> login(@RequestBody AuthRequest authRequest) {
 
@@ -64,6 +70,18 @@ public class AuthController {
 		 */
 		Usuario usuario = usuarioRepository.findByUsername(authRequest.getUsername())
 				.orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+		/*
+		 * Si 2FA está habilitado, se requiere verificación adicional
+		 */
+		if (usuario.isTwoFAEnabled()) {
+
+			String tempToken = jwtUtil.generateTempToken(usuario.getUsername());
+
+			return ResponseEntity.ok(Map.of(
+					"requires2FA", true,
+					"tempToken", tempToken));
+		}
 
 		/*
 		 * El JWT se genera con username y rol para habilitar autorización basada en
@@ -108,5 +126,64 @@ public class AuthController {
 
 		return ResponseEntity.ok(Map.of("username", auth.getName(), "authorities", auth.getAuthorities(),
 				"isAuthenticated", auth.isAuthenticated()));
+	}
+
+	@GetMapping("/generate-qr")
+	public ResponseEntity<?> generateQR() {
+
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+		if (auth == null ||
+				!auth.isAuthenticated() ||
+				auth.getName().equals("anonymousUser")) {
+
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+					.body("No autorizado");
+		}
+
+		Usuario usuario = usuarioRepository.findByUsername(auth.getName())
+				.orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+		String secret = twoFactorAuthService.generateSecret();
+
+		usuario.setSecretKey2FA(secret);
+		usuario.setTwoFAEnabled(true); // primero set todo
+
+		usuarioRepository.save(usuario); // luego guardar
+
+		String qrUrl = twoFactorAuthService.generateQrUrl(usuario.getUsername(), secret);
+
+		return ResponseEntity.ok(Map.of(
+				"secret", secret,
+				"qrUrl", qrUrl));
+	}
+
+	@PostMapping("/verify-2fa")
+	public ResponseEntity<?> verify2FA(@RequestBody TwoFactorRequest request) {
+
+		String username = jwtUtil.extractUsername(request.getTempToken());
+
+		Usuario usuario = usuarioRepository.findByUsername(username)
+				.orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+		if (!usuario.isTwoFAEnabled()) {
+			return ResponseEntity.badRequest().body("2FA no está habilitado");
+		}
+
+		boolean valid = twoFactorAuthService.validateCode(
+				usuario.getSecretKey2FA(),
+				request.getCode());
+
+		if (!valid) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+					.body("Código 2FA inválido");
+		}
+
+		String token = jwtUtil.generateToken(usuario.getUsername(), usuario.getRole());
+
+		return ResponseEntity.ok(new AuthResponse(
+				token,
+				usuario.getUsername(),
+				usuario.getRole()));
 	}
 }

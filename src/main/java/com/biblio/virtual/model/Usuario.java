@@ -30,6 +30,12 @@ public class Usuario {
 	@Column(nullable = false)
 	private String role;
 
+	@Column(name = "secret_key_2fa")
+	private String secretKey2FA;
+
+	@Column(name = "is_2fa_enabled")
+	private boolean twoFAEnabled;
+
 	@OneToMany(mappedBy = "usuario", fetch = FetchType.LAZY)
 	@JsonIgnore
 	private List<Prestamo> prestamos = new ArrayList<>();
@@ -92,6 +98,22 @@ public class Usuario {
 
 	public void setRole(String role) {
 		this.role = role;
+	}
+
+	public String getSecretKey2FA() {
+		return secretKey2FA;
+	}
+
+	public void setSecretKey2FA(String secretKey2FA) {
+		this.secretKey2FA = secretKey2FA;
+	}
+
+	public boolean isTwoFAEnabled() {
+		return twoFAEnabled;
+	}
+
+	public void setTwoFAEnabled(boolean twoFAEnabled) {
+		this.twoFAEnabled = twoFAEnabled;
 	}
 
 	public List<Prestamo> getPrestamos() {
