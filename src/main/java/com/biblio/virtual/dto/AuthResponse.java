@@ -7,10 +7,13 @@ public class AuthResponse {
 	private String username; // Nombre de usuario autenticado
 	private String role; // Rol del usuario ("ROLE_USER" o "ROLE_ADMIN")
 
+	private boolean requires2FA;
+
 	public AuthResponse(String token, String username, String role) {
 		this.token = token;
 		this.username = username;
 		this.role = role;
+		this.requires2FA = false;
 	}
 
 	// Getters y setters necesarios para serialización/deserialización

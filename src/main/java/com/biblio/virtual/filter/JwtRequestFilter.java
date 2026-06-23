@@ -28,10 +28,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 	private JwtUtil jwtUtil;
 
 	@Override
-	protected void doFilterInternal(
-			HttpServletRequest request,
-			HttpServletResponse response,
-			FilterChain chain)
+	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
 			throws ServletException, IOException {
 
 		final String authorizationHeader = request.getHeader("Authorization");
@@ -52,6 +49,16 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 		// Si no está autenticado aún
 		if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
+			// Bloqueo de TempToken
+			if (jwtUtil.isTempToken(jwt)) {
+				// Permitimos que pase SOLO si va al endpoint de verificar 2FA
+				if (!request.getRequestURI().equals("/auth/verify-2fa")) {
+					response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
+							"Token temporal no válido para acceso a recursos");
+					return;
+				}
+			}
+
 			UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
 			if (jwtUtil.validateToken(jwt, userDetails.getUsername())) {
@@ -64,13 +71,10 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 					return;
 				}
 
-				UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-						userDetails,
-						null,
-						List.of(new SimpleGrantedAuthority(role)));
+				UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails,
+						null, List.of(new SimpleGrantedAuthority(role)));
 
-				authToken.setDetails(
-						new WebAuthenticationDetailsSource().buildDetails(request));
+				authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
 				SecurityContextHolder.getContext().setAuthentication(authToken);
 			}

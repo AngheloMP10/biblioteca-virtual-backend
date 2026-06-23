@@ -75,12 +75,8 @@ public class AuthController {
 		 * Si 2FA está habilitado, se requiere verificación adicional
 		 */
 		if (usuario.isTwoFAEnabled()) {
-
 			String tempToken = jwtUtil.generateTempToken(usuario.getUsername());
-
-			return ResponseEntity.ok(Map.of(
-					"requires2FA", true,
-					"tempToken", tempToken));
+			return ResponseEntity.ok(Map.of("requires2FA", true, "tempToken", tempToken));
 		}
 
 		/*
@@ -124,8 +120,11 @@ public class AuthController {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "No hay autenticación"));
 		}
 
+		Usuario usuario = usuarioRepository.findByUsername(auth.getName())
+				.orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
 		return ResponseEntity.ok(Map.of("username", auth.getName(), "authorities", auth.getAuthorities(),
-				"isAuthenticated", auth.isAuthenticated()));
+				"isAuthenticated", auth.isAuthenticated(), "is2faEnabled", usuario.isTwoFAEnabled()));
 	}
 
 	@GetMapping("/generate-qr")
@@ -133,29 +132,22 @@ public class AuthController {
 
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-		if (auth == null ||
-				!auth.isAuthenticated() ||
-				auth.getName().equals("anonymousUser")) {
+		if (auth == null || !auth.isAuthenticated() || auth.getName().equals("anonymousUser")) {
 
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-					.body("No autorizado");
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No autorizado");
 		}
 
 		Usuario usuario = usuarioRepository.findByUsername(auth.getName())
 				.orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
 		String secret = twoFactorAuthService.generateSecret();
-
 		usuario.setSecretKey2FA(secret);
-		usuario.setTwoFAEnabled(true); // primero set todo
 
-		usuarioRepository.save(usuario); // luego guardar
+		usuarioRepository.save(usuario);
 
 		String qrUrl = twoFactorAuthService.generateQrUrl(usuario.getUsername(), secret);
 
-		return ResponseEntity.ok(Map.of(
-				"secret", secret,
-				"qrUrl", qrUrl));
+		return ResponseEntity.ok(Map.of("secret", secret, "qrUrl", qrUrl));
 	}
 
 	@PostMapping("/verify-2fa")
@@ -170,20 +162,49 @@ public class AuthController {
 			return ResponseEntity.badRequest().body("2FA no está habilitado");
 		}
 
-		boolean valid = twoFactorAuthService.validateCode(
-				usuario.getSecretKey2FA(),
-				request.getCode());
+		boolean valid = twoFactorAuthService.validateCode(usuario.getSecretKey2FA(), request.getCode());
 
 		if (!valid) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-					.body("Código 2FA inválido");
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Código 2FA inválido");
 		}
 
 		String token = jwtUtil.generateToken(usuario.getUsername(), usuario.getRole());
 
-		return ResponseEntity.ok(new AuthResponse(
-				token,
-				usuario.getUsername(),
-				usuario.getRole()));
+		return ResponseEntity.ok(new AuthResponse(token, usuario.getUsername(), usuario.getRole()));
+	}
+
+	@PostMapping("/confirm-2fa")
+	public ResponseEntity<?> confirm2FA(@RequestBody TwoFactorRequest request) {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		Usuario usuario = usuarioRepository.findByUsername(auth.getName()).orElseThrow();
+
+		// Validamos el código que el usuario acaba de escanear
+		boolean valid = twoFactorAuthService.validateCode(usuario.getSecretKey2FA(), request.getCode());
+
+		if (!valid) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Código incorrecto, no se pudo activar 2FA");
+		}
+
+		// Solo si el código es correcto, activamos el 2FA
+		usuario.setTwoFAEnabled(true);
+		usuarioRepository.save(usuario);
+
+		return ResponseEntity.ok("2FA activado correctamente");
+	}
+
+	@PostMapping("/disable-2fa")
+	public ResponseEntity<?> disable2FA() {
+
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+		Usuario usuario = usuarioRepository.findByUsername(auth.getName())
+				.orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+		usuario.setTwoFAEnabled(false);
+		usuario.setSecretKey2FA(null);
+
+		usuarioRepository.save(usuario);
+
+		return ResponseEntity.ok("2FA desactivado correctamente");
 	}
 }

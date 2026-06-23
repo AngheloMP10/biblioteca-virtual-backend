@@ -27,14 +27,9 @@ public class JwtUtil {
 	// Generar token con username y rol
 	public String generateToken(String username, String role) {
 
-		return Jwts.builder()
-				.setIssuer("biblioteca-virtual")
-				.setSubject(username)
-				.claim("role", role)
-				.setIssuedAt(new Date())
-				.setExpiration(new Date(System.currentTimeMillis() + expiration))
-				.signWith(getSigningKey(), SignatureAlgorithm.HS256)
-				.compact();
+		return Jwts.builder().setIssuer("biblioteca-virtual").setSubject(username).claim("role", role)
+				.setIssuedAt(new Date()).setExpiration(new Date(System.currentTimeMillis() + expiration))
+				.signWith(getSigningKey(), SignatureAlgorithm.HS256).compact();
 	}
 
 	// Extraer username del token
@@ -61,23 +56,19 @@ public class JwtUtil {
 
 	private Claims extractAllClaims(String token) {
 		// Parsear token y extraer claims
-		return Jwts.parserBuilder()
-				.setSigningKey(getSigningKey())
-				.build()
-				.parseClaimsJws(token)
-				.getBody();
+		return Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(token).getBody();
 	}
 
 	// Token temporal para 2FA (muy corto y sin rol)
 	public String generateTempToken(String username) {
 
-		return Jwts.builder()
-				.setIssuer("biblioteca-virtual")
-				.setSubject(username)
-				.claim("type", "2FA_TEMP")
-				.setIssuedAt(new Date())
-				.setExpiration(new Date(System.currentTimeMillis() + 5 * 60 * 1000)) // 5 min
-				.signWith(getSigningKey(), SignatureAlgorithm.HS256)
-				.compact();
+		return Jwts.builder().setIssuer("biblioteca-virtual").setSubject(username).claim("type", "2FA_TEMP")
+				.setIssuedAt(new Date()).setExpiration(new Date(System.currentTimeMillis() + 5 * 60 * 1000)) // 5 min
+				.signWith(getSigningKey(), SignatureAlgorithm.HS256).compact();
+	}
+
+	public boolean isTempToken(String token) {
+		String type = extractAllClaims(token).get("type", String.class);
+		return "2FA_TEMP".equals(type);
 	}
 }

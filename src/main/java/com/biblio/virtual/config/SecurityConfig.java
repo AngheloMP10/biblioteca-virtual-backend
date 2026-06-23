@@ -35,38 +35,33 @@ public class SecurityConfig {
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		http
-				.cors(Customizer.withDefaults()) // CORS habilitado para frontend externo
+		http.cors(Customizer.withDefaults()) // CORS habilitado para frontend externo
 				.csrf(csrf -> csrf.disable()) // API stateless con JWT
-				.authorizeHttpRequests(auth -> auth
-						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-						.requestMatchers("/auth/login", "/auth/register").permitAll()
+				.authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+						.requestMatchers("/auth/login", "/auth/register", "/auth/verify-2fa").permitAll()
 						.requestMatchers("/auth/me").authenticated()
-						.requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-						.requestMatchers("/ws/**").permitAll() // WebSocket STOMP + SockJS
-						.anyRequest().authenticated())
+						.requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll().requestMatchers("/ws/**")
+						.permitAll().anyRequest().authenticated())
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.addFilterBefore(
-						jwtRequestFilter,
-						UsernamePasswordAuthenticationFilter.class); // Autenticación JWT previa al filtro estándar
+				.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class); // Autenticación JWT
+																								// previa al filtro
+																								// estándar
 
 		return http.build();
 	}
 
 	/*
-	 * Configuración CORS explícita para controlar orígenes y
-	 * evitar exposición global innecesaria.
+	 * Configuración CORS explícita para controlar orígenes y evitar exposición
+	 * global innecesaria.
 	 */
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration configuration = new CorsConfiguration();
 
-		configuration.setAllowedOrigins(Arrays.asList(
-				"http://localhost:4200",
-				"https://bucolic-horse-0d3efe.netlify.app"));
+		configuration
+				.setAllowedOrigins(Arrays.asList("http://localhost:4200", "https://bucolic-horse-0d3efe.netlify.app"));
 
-		configuration.setAllowedMethods(
-				Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+		configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 
 		configuration.setAllowedHeaders(Arrays.asList("*"));
 		configuration.setAllowCredentials(true);
@@ -77,8 +72,8 @@ public class SecurityConfig {
 	}
 
 	/*
-	 * BCrypt se usa por ser el estándar recomendado
-	 * para almacenamiento seguro de contraseñas.
+	 * BCrypt se usa por ser el estándar recomendado para almacenamiento seguro de
+	 * contraseñas.
 	 */
 	@Bean
 	public PasswordEncoder passwordEncoder() {
@@ -86,12 +81,12 @@ public class SecurityConfig {
 	}
 
 	/*
-	 * Se delega la creación del AuthenticationManager
-	 * a la configuración interna de Spring Security.
+	 * Se delega la creación del AuthenticationManager a la configuración interna de
+	 * Spring Security.
 	 */
 	@Bean
-	public AuthenticationManager authenticationManager(
-			AuthenticationConfiguration authenticationConfiguration) throws Exception {
+	public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+			throws Exception {
 		return authenticationConfiguration.getAuthenticationManager();
 	}
 }
