@@ -108,6 +108,7 @@ Nuevas funcionalidades, mejoras y optimizaciones seguirán incorporándose en fu
 
 ## Estructura del proyecto
 
+
 ```
 biblioteca-virtual
 ├─ .mvn
@@ -212,7 +213,8 @@ biblioteca-virtual
 │                 ├─ controller
 │                 │  └─ GeneroControllerTest.java
 │                 └─ service
-│                    └─ LibroServiceTest.java
+│                    ├─ LibroServiceTest.java
+│                    └─ PrestamoServiceTest.java
 └─ system.properties
 
 ```

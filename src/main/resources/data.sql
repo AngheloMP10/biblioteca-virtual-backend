@@ -76,7 +76,7 @@ INSERT INTO libro_autor (libro_id, autor_id) VALUES
 (14, 14),
 (15, 15),
 (16, 16)
-ON CONFLICT DO NOTHING;
+ON CONFLICT (libro_id, autor_id) DO NOTHING;
 
 -- ========================
 -- REINICIAR SECUENCIADORES (Para evitar DuplicateKeyException al crear nuevos)

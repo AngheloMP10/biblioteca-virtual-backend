@@ -1,11 +1,12 @@
 package com.biblio.virtual.model;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
+
+import java.util.Set;
+import java.util.HashSet;
 
 @Entity
 @Table(name = "autores")
@@ -25,7 +26,7 @@ public class Autor implements Serializable {
 
 	// Relación inversa ManyToMany
 	@ManyToMany(mappedBy = "autores", cascade = { CascadeType.PERSIST, CascadeType.MERGE })
-	private List<Libro> libros = new ArrayList<>();
+	private Set<Libro> libros = new HashSet<>();
 
 	// Getters y Setters
 	public Long getId() {
@@ -52,11 +53,11 @@ public class Autor implements Serializable {
 		this.urlFoto = urlFoto;
 	}
 
-	public List<Libro> getLibros() {
+	public Set<Libro> getLibros() {
 		return libros;
 	}
 
-	public void setLibros(List<Libro> libros) {
+	public void setLibros(Set<Libro> libros) {
 		this.libros = libros;
 	}
 }

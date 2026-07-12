@@ -95,7 +95,7 @@ public class LibrosController {
 	}
 
 	// DELETE: SOLO ADMIN
-	@PreAuthorize("hasAuthority(@roles.ADMIN())")
+	@PreAuthorize("hasAnyAuthority(@roles.ADMIN(), @roles.BIBLIOTECARIO())")
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> eliminar(@PathVariable Long id) {
 

@@ -23,8 +23,8 @@ public class GeneroController {
 		this.generoMapper = generoMapper;
 	}
 
-	// CREATE - Solo ADMIN
-	@PreAuthorize("hasAuthority(@roles.ADMIN())")
+	// CREATE - ADMIN y BIBLIOTECARIO
+	@PreAuthorize("hasAnyAuthority(@roles.ADMIN(), @roles.BIBLIOTECARIO())")
 	@PostMapping
 	public ResponseEntity<GeneroDTO> guardar(@RequestBody GeneroDTO generoDto) {
 
@@ -34,29 +34,26 @@ public class GeneroController {
 		return ResponseEntity.ok(generoMapper.toDto(guardado));
 	}
 
-	// READ - Listar
-	@PreAuthorize("hasAnyAuthority(@roles.ADMIN(), @roles.USER())")
+	// READ - Listar (TODOS)
+	@PreAuthorize("hasAnyAuthority(@roles.ADMIN(), @roles.BIBLIOTECARIO(), @roles.USER())")
 	@GetMapping
 	public ResponseEntity<List<GeneroDTO>> listar() {
 		return ResponseEntity.ok(generoMapper.toDtoList(service.findAll()));
 	}
 
-	// READ - Buscar por ID
-	@PreAuthorize("hasAnyAuthority(@roles.ADMIN(), @roles.USER())")
+	// READ - Buscar por ID (TODOS)
+	@PreAuthorize("hasAnyAuthority(@roles.ADMIN(), @roles.BIBLIOTECARIO(), @roles.USER())")
 	@GetMapping("/{id}")
 	public ResponseEntity<GeneroDTO> buscarPorId(@PathVariable Long id) {
 
 		Genero genero = service.findById(id);
-		return (genero != null)
-				? ResponseEntity.ok(generoMapper.toDto(genero))
-				: ResponseEntity.notFound().build();
+		return (genero != null) ? ResponseEntity.ok(generoMapper.toDto(genero)) : ResponseEntity.notFound().build();
 	}
 
-	// UPDATE - Solo ADMIN
-	@PreAuthorize("hasAuthority(@roles.ADMIN())")
+	// UPDATE - ADMIN y BIBLIOTECARIO
+	@PreAuthorize("hasAnyAuthority(@roles.ADMIN(), @roles.BIBLIOTECARIO())")
 	@PutMapping("/{id}")
-	public ResponseEntity<GeneroDTO> actualizar(@PathVariable Long id,
-			@RequestBody GeneroDTO generoDto) {
+	public ResponseEntity<GeneroDTO> actualizar(@PathVariable Long id, @RequestBody GeneroDTO generoDto) {
 
 		Genero existente = service.findById(id);
 		if (existente == null) {
@@ -69,8 +66,8 @@ public class GeneroController {
 		return ResponseEntity.ok(generoMapper.toDto(actualizado));
 	}
 
-	// DELETE - Solo ADMIN
-	@PreAuthorize("hasAuthority(@roles.ADMIN())")
+	// DELETE - ADMIN y BIBLIOTECARIO
+	@PreAuthorize("hasAnyAuthority(@roles.ADMIN(), @roles.BIBLIOTECARIO())")
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> eliminar(@PathVariable Long id) {
 

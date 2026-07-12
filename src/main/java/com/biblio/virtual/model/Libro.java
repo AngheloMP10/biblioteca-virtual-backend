@@ -9,6 +9,10 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
+import java.util.Set;
+import java.util.HashSet;
+import jakarta.persistence.UniqueConstraint;
+
 @Entity
 @Table(name = "libros")
 public class Libro implements Serializable {
@@ -23,8 +27,9 @@ public class Libro implements Serializable {
 	private String titulo;
 
 	@ManyToMany(fetch = FetchType.EAGER)
-	@JoinTable(name = "libro_autor", joinColumns = @JoinColumn(name = "libro_id"), inverseJoinColumns = @JoinColumn(name = "autor_id"))
-	private List<Autor> autores = new ArrayList<>();
+	@JoinTable(name = "libro_autor", joinColumns = @JoinColumn(name = "libro_id"), inverseJoinColumns = @JoinColumn(name = "autor_id"), uniqueConstraints = @UniqueConstraint(columnNames = {
+			"libro_id", "autor_id" }))
+	private Set<Autor> autores = new HashSet<>();
 
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "genero_id")
@@ -63,11 +68,11 @@ public class Libro implements Serializable {
 		this.titulo = titulo;
 	}
 
-	public List<Autor> getAutores() {
+	public Set<Autor> getAutores() {
 		return autores;
 	}
 
-	public void setAutores(List<Autor> autores) {
+	public void setAutores(Set<Autor> autores) {
 		this.autores = autores;
 	}
 
