@@ -1,8 +1,8 @@
 package com.biblio.virtual.repository;
 
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import com.biblio.virtual.model.Genero;
 
-public interface IGeneroRepository extends CrudRepository<Genero, Long> {
+public interface IGeneroRepository extends JpaRepository<Genero, Long> {
 
 }

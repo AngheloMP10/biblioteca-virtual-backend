@@ -79,8 +79,51 @@ INSERT INTO libro_autor (libro_id, autor_id) VALUES
 ON CONFLICT (libro_id, autor_id) DO NOTHING;
 
 -- ========================
--- REINICIAR SECUENCIADORES (Para evitar DuplicateKeyException al crear nuevos)
+-- USUARIOS (Solo data de prueba, IDs empiezan en 10 para no chocar con el CommandLineRunner)
+-- ========================
+INSERT INTO usuarios (id, celular, email, password, role, is_2fa_enabled, username) VALUES 
+(10, '987654321', 'carlos.ruiz@gmail.com', '$2a$10$oyprJT0WXTsNtNobgWR/E.OGUFrFUHN0pIJR/aEEsB0ZV/xcEoag.', 'ROLE_USER', false, 'cruiz'),
+(11, '987654322', 'maria.gomez@gmail.com', '$2a$10$oyprJT0WXTsNtNobgWR/E.OGUFrFUHN0pIJR/aEEsB0ZV/xcEoag.', 'ROLE_USER', false, 'mgomez'),
+(12, '987654323', 'juan.perez@gmail.com', '$2a$10$oyprJT0WXTsNtNobgWR/E.OGUFrFUHN0pIJR/aEEsB0ZV/xcEoag.', 'ROLE_USER', false, 'jperez'),
+(13, '987654324', 'ana.torres@gmail.com', '$2a$10$oyprJT0WXTsNtNobgWR/E.OGUFrFUHN0pIJR/aEEsB0ZV/xcEoag.', 'ROLE_USER', false, 'atorres'),
+(14, '987654325', 'luis.diaz@gmail.com', '$2a$10$oyprJT0WXTsNtNobgWR/E.OGUFrFUHN0pIJR/aEEsB0ZV/xcEoag.', 'ROLE_USER', false, 'ldiaz'),
+(15, '987654326', 'elena.rojas@gmail.com', '$2a$10$oyprJT0WXTsNtNobgWR/E.OGUFrFUHN0pIJR/aEEsB0ZV/xcEoag.', 'ROLE_USER', false, 'erojas'),
+(16, '987654327', 'pedro.castro@gmail.com', '$2a$10$oyprJT0WXTsNtNobgWR/E.OGUFrFUHN0pIJR/aEEsB0ZV/xcEoag.', 'ROLE_USER', false, 'pcastro'),
+(17, '987654328', 'lucia.mendez@gmail.com', '$2a$10$oyprJT0WXTsNtNobgWR/E.OGUFrFUHN0pIJR/aEEsB0ZV/xcEoag.', 'ROLE_USER', false, 'lmendez'),
+(18, '987654329', 'diego.salazar@gmail.com', '$2a$10$oyprJT0WXTsNtNobgWR/E.OGUFrFUHN0pIJR/aEEsB0ZV/xcEoag.', 'ROLE_USER', false, 'dsalazar'),
+(19, '987654330', 'valeria.vega@gmail.com', '$2a$10$oyprJT0WXTsNtNobgWR/E.OGUFrFUHN0pIJR/aEEsB0ZV/xcEoag.', 'ROLE_USER', false, 'vvega')
+ON CONFLICT (id) DO NOTHING;
+
+-- ========================
+-- PRÉSTAMOS (15 registros variados para alimentar el Dashboard)
+-- ========================
+INSERT INTO prestamos (id, estado, fecha_solicitud, fecha_recojo, fecha_devolucion, qr_code, libro_id, usuario_id) VALUES 
+-- HISTÓRICOS (Finalizados)
+(1, 'FINALIZADO', '2026-06-01', '2026-06-02', '2026-06-15', NULL, 1, 10),
+(2, 'FINALIZADO', '2026-06-10', '2026-06-11', '2026-06-25', NULL, 4, 11),
+(3, 'FINALIZADO', '2026-06-15', '2026-06-16', '2026-06-30', NULL, 7, 12),
+(4, 'FINALIZADO', '2026-06-20', '2026-06-22', '2026-07-05', NULL, 9, 13),
+(5, 'FINALIZADO', '2026-06-25', '2026-06-26', '2026-07-10', NULL, 12, 14),
+-- RECIENTES (Pendientes de revisión por el Bibliotecario)
+(6, 'PENDIENTE', '2026-07-10', NULL, NULL, NULL, 2, 15),
+(7, 'PENDIENTE', '2026-07-11', NULL, NULL, NULL, 5, 16),
+(8, 'PENDIENTE', '2026-07-12', NULL, NULL, NULL, 8, 17),
+(9, 'PENDIENTE', '2026-07-12', NULL, NULL, NULL, 16, 18),
+-- EN CURSO (Aprobados, algunos ya recogidos y otros esperando al usuario)
+(10, 'APROBADO', '2026-07-05', '2026-07-06', NULL, NULL, 13, 19),
+(11, 'APROBADO', '2026-07-08', '2026-07-09', NULL, NULL, 11, 10),
+(12, 'APROBADO', '2026-07-09', NULL, NULL, NULL, 14, 11), 
+-- RECHAZADOS (Por falta de stock o penalidades)
+(13, 'RECHAZADO', '2026-07-01', NULL, NULL, NULL, 3, 12), 
+(14, 'RECHAZADO', '2026-07-02', NULL, NULL, NULL, 15, 13),
+(15, 'RECHAZADO', '2026-07-03', NULL, NULL, NULL, 10, 14)
+ON CONFLICT (id) DO NOTHING;
+
+-- ========================
+-- REINICIAR SECUENCIADORES 
 -- ========================
 SELECT setval(pg_get_serial_sequence('public.generos', 'id'), COALESCE(MAX(id), 1)) FROM public.generos;
 SELECT setval(pg_get_serial_sequence('public.autores', 'id'), COALESCE(MAX(id), 1)) FROM public.autores;
 SELECT setval(pg_get_serial_sequence('public.libros', 'id'), COALESCE(MAX(id), 1)) FROM public.libros;
+SELECT setval(pg_get_serial_sequence('public.usuarios', 'id'), COALESCE(MAX(id), 19)) FROM public.usuarios;
+SELECT setval(pg_get_serial_sequence('public.prestamos', 'id'), COALESCE(MAX(id), 15)) FROM public.prestamos;

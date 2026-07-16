@@ -1,69 +1,55 @@
 # Biblioteca Virtual - Backend
 
-Backend del sistema **Biblioteca Virtual**, una aplicación web orientada a la gestión de préstamos bibliotecarios, administración de libros y control de usuarios mediante acceso por roles.
-
-El sistema permite gestionar el catálogo de libros, solicitudes de préstamo, autores, géneros y métricas administrativas, además de incorporar mecanismos de seguridad como autenticación JWT y verificación en dos pasos (2FA).
-
----
-
-## Autor
-
-**Anghelo M. P.**
-Estudiante de Ingeniería de Software
-Universidad Tecnológica del Perú
+Backend del sistema **Biblioteca Virtual**, una API REST desarrollada con **Spring Boot** para la gestión de préstamos bibliotecarios. El sistema permite administrar usuarios, libros, autores, géneros y préstamos, incorporando mecanismos de seguridad como autenticación mediante JWT, autenticación en dos factores (2FA) y control de acceso basado en roles.
 
 ---
 
 ## Tecnologías utilizadas
 
 - Java 21
-- Spring Boot
-- Spring Security + JWT
+- Spring Boot 3
+- Spring Security
+- JWT
 - PostgreSQL
+- Spring Data JPA
 - Docker
-- WebSockets
 - Cloudinary
+- WebSocket
+- Maven
+- GitHub Actions
 
 ---
 
-## Funcionalidades principales
+## Funcionalidades
 
-- Autenticación y autorización por roles:
-  - ADMIN
-  - BIBLIOTECARIO
-  - USER
-
-- Gestión de libros
-
-- Gestión de autores
-
-- Gestión de géneros
-
-- Gestión de préstamos
-
-- Dashboard administrativo
-
-- Autenticación en dos factores (2FA)
-
-- Notificaciones en tiempo real
+- Autenticación mediante JWT.
+- Autenticación en dos factores (2FA).
+- Control de acceso por roles (ADMIN, BIBLIOTECARIO y USER).
+- Gestión de libros, autores y géneros.
+- Gestión del ciclo completo de préstamos.
+- Dashboard administrativo con métricas.
+- Carga de imágenes mediante Cloudinary.
+- Notificaciones en tiempo real mediante WebSocket.
+- API REST documentada con Swagger/OpenAPI.
 
 ---
 
-## Arquitectura general
+## Arquitectura
 
-El backend expone una API REST desarrollada con Spring Boot que se comunica con:
+El backend sigue una arquitectura en capas compuesta por:
 
-- Frontend en Angular
-- Base de datos PostgreSQL
-- Servicios externos de almacenamiento multimedia
-
-La arquitectura está diseñada para ser modular, escalable y fácil de mantener.
+- **Controllers:** Exponen la API REST.
+- **Services:** Implementan la lógica de negocio.
+- **Repositories:** Acceso a datos mediante Spring Data JPA.
+- **Models:** Entidades persistentes.
+- **DTOs y Mappers:** Transferencia y transformación de datos.
+- **Security:** Configuración de JWT, filtros y control de acceso.
 
 ---
 
 ## Requisitos
 
-Para ejecutar el proyecto se recomienda contar con:
+Para ejecutar el proyecto localmente se requiere:
 
 - Java 21
 - Maven
@@ -76,38 +62,122 @@ O alternativamente:
 
 ---
 
-## Ejecución del proyecto
+# Instalación y ejecución
 
-Clonar el repositorio:
+## Clonar el repositorio
 
 ```bash
 git clone https://github.com/AngheloMP10/biblioteca-virtual-backend.git
 cd biblioteca-virtual-backend
 ```
 
-Ejecutar con Maven:
+---
 
-```bash
-./mvnw spring-boot:run
+## Variables de entorno
+
+El proyecto utiliza variables de entorno para proteger información sensible.
+
+Como referencia se incluye el archivo:
+
+```text
+src/main/resources/application-local-example.properties
 ```
 
-O mediante Docker:
+Entre las principales variables utilizadas se encuentran:
+
+```text
+DB_URL_LOCAL
+DB_USERNAME_LOCAL
+DB_PASSWORD_LOCAL
+
+JWT_SECRET_LOCAL
+
+CLOUDINARY_CLOUD_NAME_LOCAL
+CLOUDINARY_API_KEY_LOCAL
+CLOUDINARY_API_SECRET_LOCAL
+```
+
+---
+
+## Ejecución local
+
+Ejecutar utilizando el perfil **local**:
+
+```bash
+./mvnw spring-boot:run -Dspring-boot.run.profiles=local
+```
+
+O directamente desde Spring Tools o IntelliJ seleccionando el perfil:
+
+```text
+local
+```
+
+---
+
+## Ejecución con Docker
 
 ```bash
 docker compose up --build
 ```
 
+La aplicación utilizará automáticamente el perfil **docker**.
+
 ---
 
-## Estado del proyecto
+## Documentación de la API
 
-Proyecto en desarrollo activo.
-Nuevas funcionalidades, mejoras y optimizaciones seguirán incorporándose en futuras versiones.
+Una vez iniciado el proyecto, la documentación Swagger estará disponible en:
+
+```text
+http://localhost:8080/swagger-ui/index.html
+```
+
+---
+
+## Pruebas
+
+El proyecto incluye:
+
+- Pruebas unitarias.
+- Pruebas de integración.
+- MockMvc.
+- JUnit 5.
+
+Ejecutarlas mediante:
+
+```bash
+./mvnw test
+```
+
+---
+
+## Despliegue
+
+El proyecto está preparado para despliegue mediante:
+
+- Backend: Render
+- Base de datos: Supabase PostgreSQL
+- Contenedores Docker
+- GitHub Actions para CI/CD
+- Docker Hub como registro de imágenes
+
+```text
+https://bucolic-horse-0d3efe.netlify.app/
+```
+
+---
+
+## Autor
+
+**Anghelo Mendoza Prado**
+
+Estudiante de Ingeniería de Software  
+Universidad Tecnológica del Perú
 
 ---
 
 ## Estructura del proyecto
-
 
 ```
 biblioteca-virtual
@@ -199,22 +269,27 @@ biblioteca-virtual
 │  │  │              └─ JwtUtil.java
 │  │  └─ resources
 │  │     ├─ application-docker.properties
-│  │     ├─ application-local.properties
+│  │     ├─ application-local-example.properties
 │  │     ├─ application-prod.properties
+│  │     ├─ application.properties
 │  │     ├─ data.sql
 │  │     ├─ static
 │  │     └─ templates
 │  └─ test
-│     └─ java
-│        └─ com
-│           └─ biblio
-│              └─ virtual
-│                 ├─ BibliotecaVirtualApplicationTests.java
-│                 ├─ controller
-│                 │  └─ GeneroControllerTest.java
-│                 └─ service
-│                    ├─ LibroServiceTest.java
-│                    └─ PrestamoServiceTest.java
+│     ├─ java
+│     │  └─ com
+│     │     └─ biblio
+│     │        └─ virtual
+│     │           ├─ BibliotecaVirtualApplicationTests.java
+│     │           ├─ controller
+│     │           │  ├─ GeneroControllerTest.java
+│     │           │  ├─ GeneroIntegrationTest.java
+│     │           │  └─ TestSecurityConfig.java
+│     │           └─ service
+│     │              ├─ LibroServiceTest.java
+│     │              └─ PrestamoServiceTest.java
+│     └─ resources
+│        └─ application-test.properties
 └─ system.properties
 
 ```
